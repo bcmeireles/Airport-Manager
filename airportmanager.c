@@ -32,8 +32,8 @@ typedef struct
 {
     char id[FLIGHTIDMAX + OFFSET]; /* Two flights can exist with the same code as long as they do not have the same departure date
                                       String made of two uppercase letters followed by a number 1-9999, that can not start with 0 */
-    char departure; /* Departure airport ID */
-    char arrival; /* Arrival airport ID */
+    char departure[IDAPMAX + OFFSET]; /* Departure airport ID */
+    char arrival[IDAPMAX + OFFSET]; /* Arrival airport ID */
     char date[DATEMAX + OFFSET]; /* Departure day */
     char time[TIMEMAX + OFFSET]; /* Departure time */
     char duration[TIMEMAX + OFFSET]; /* Can not be over 12 hours long */
@@ -48,54 +48,75 @@ void create_airport(int airport_count, char id[], char country[], char city[]){
     strcpy(airport[airport_count].id, id);
     strcpy(airport[airport_count].country, country);
     strcpy(airport[airport_count].city, city);
-    printf("Airport #%d with the ID %s created.\n", airport_count, id);
-    
+    printf("airport %s", id);
+}
+
+void create_flight(int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){
+    strcpy(flight[flight_count].id, id);
+    strcpy(flight[flight_count].departure, departure);
+    strcpy(flight[flight_count].arrival, arrival);
+    strcpy(flight[flight_count].date, date);
+    strcpy(flight[flight_count].time, time);
+    strcpy(flight[flight_count].duration, duration);
+    flight[flight_count].passengers = passengers;
+}
+
+int airport_exists(char id[]){
+    /*
+        Returns 1 if an airport with the given ID already exists
+        0 if it does not.
+    */
+    int i;
+    for (i=0; i < AIRPORTSMAX; i++){
+        if (strcmp(airport[i].id, id) == 0)
+            return(1);
+    }
+    return(0);
 }
 
 int main(){
+    
     int airport_count, flight_count = 0;
 
     char input[INPUTLEN];
     char command;
 
-    fgets(input, INPUTLEN, stdin);
-    command = input[0];
+    while (1){
+        fgets(input, INPUTLEN, stdin);
+        command = input[0];
 
-    /*
-        q : kills the program
-        a : adds a new airport to the system
-        l : lists all airports
-        v : adds a new flight or shows all existing ones
-        p : lists all flights with departure from an airport
-        c : lista all flight with arrival at an airport
-        t : advances the data of the system
+        /*
+            q : kills the program
+            a : adds a new airport to the system
+            l : lists all airports
+            v : adds a new flight or shows all existing ones
+            p : lists all flights with departure from an airport
+            c : lista all flight with arrival at an airport
+            t : advances the data of the system
 
-    */ 
+        */ 
 
-    switch(command){
-        case 'q':
-            exit(0);
-            break;
-        case 'a':
-            create_airport(airport_count, "BB3333", "Portugal", "Lisboa");
-            airport_count++;
-            create_airport(airport_count, "CC4444", "Espanha", "Madrid");
-            break;
-        case 'l':
-            printf("l");
-            break;
-        case 'v':
-            printf("v");
-            break;
-        case 'p':
-            printf("p");
-            break;
-        case 'c':
-            printf("c");
-            break;
-        case 't':
-            printf("t");
-            break;
+        switch(command){
+            case 'q':
+                exit(0);
+                break;
+            case 'a':
+                break;
+            case 'l':
+                break;
+            case 'v':
+                printf("v");
+                break;
+            case 'p':
+                printf("p");
+                break;
+            case 'c':
+                printf("c");
+                break;
+            case 't':
+                printf("t");
+                break;
+        }
     }
 
     return(0);
