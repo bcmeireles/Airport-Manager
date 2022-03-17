@@ -55,6 +55,17 @@ void create_flight(struct flight flights[], int flight_count, char id[], char de
     flights[flight_count].passengers = passengers;
 }
 */
+
+int airport_exists(struct airport airports[], char id[]){
+    int i;
+
+    for (i=0; i < AIRPORTSMAX; i++){
+        if (strcmp(airports[i].id, id) == 0)
+            return(1);
+    }
+    return (0);
+}
+
 int check_airport(struct airport airports[], char id[], int airport_count){
     /*
         Returns 0 if the ID is invalid,
@@ -71,10 +82,9 @@ int check_airport(struct airport airports[], char id[], int airport_count){
     if (airport_count == AIRPORTSMAX)
         return(1);
 
-    for (i=0; i < AIRPORTSMAX; i++){
-        if (strcmp(airports[i].id, id) == 0)
-            return(2);
-    }
+    if (airport_exists(airports, id))
+        return(2);
+    
     return(3);
 }
 
@@ -112,7 +122,6 @@ int main(){
                 break;
             case 'a':
                 sscanf(input, "%*s%s%s %[^\n]", id, country, city);
-                printf("ID: %s\nCOUNTRY: %s\nCITY: %s\n", id, country, city);
                 id_status = check_airport(airports, id, airport_count);
                 switch(id_status){
                     case 0:
@@ -126,7 +135,7 @@ int main(){
                         break;
                     case 3:
                         create_airport(airports, airport_count, id, country, city);
-                        airport_count++
+                        airport_count++;
                         break;
                 }
                 break;
