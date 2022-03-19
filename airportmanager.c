@@ -42,9 +42,9 @@ void create_airport(struct airport airports[], int airport_count, char id[], cha
     strcpy(airports[airport_count].id, id);
     strcpy(airports[airport_count].country, country);
     strcpy(airports[airport_count].city, city);
-    printf("airport %s", id);
+    printf("airport %s\n", id);
 }
-/*
+
 void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){
     strcpy(flights[flight_count].id, id);
     strcpy(flights[flight_count].departure, departure);
@@ -53,8 +53,9 @@ void create_flight(struct flight flights[], int flight_count, char id[], char de
     strcpy(flights[flight_count].time, time);
     strcpy(flights[flight_count].duration, duration);
     flights[flight_count].passengers = passengers;
+    printf("%s %s %s %s %s", id, departure, arrival, date, time);
 }
-*/
+
 
 int airport_exists(struct airport airports[], char id[]){
     int i;
@@ -66,12 +67,22 @@ int airport_exists(struct airport airports[], char id[]){
     return (0);
 }
 
+int flight_exists(struct flight flights[], char id[], char date[]){
+    int i;
+
+    for (i=0; i < FLIGHTSMAX; i++){
+        if ((strcmp(flights[i].id, id) == 0) && (strcmp(flights[i].date, date) == 0))
+            return(1);
+    }
+    return (0);
+}
+
 int check_airport(struct airport airports[], char id[], int airport_count){
     /*
         Returns 0 if the ID is invalid,
         Returns 1 if there are already too many airports
         Returns 2 if an airport with the given ID already exists,
-        Returns 3 if it is possible to create an airport with the given ID
+        Returns 3 if it is possible to create an airport
     */
     int i;
     for (i=0; i<3; i++){
@@ -88,19 +99,43 @@ int check_airport(struct airport airports[], char id[], int airport_count){
     return(3);
 }
 
+int check_flight(struct flight flights[], char id[], int airport_count[], char date[], int duration[]){
+    /*
+        Returns 0 if the ID is invalid
+        Returns 1 if a flight with the same ID already exists in the same day
+        Returns 2 if either the departure or arrival airport does not exist
+        Returns 3 if there are already too many flights
+        Returns 4 if the date is invalid
+        Returns 5 if the duration is higher than 12 hours
+        Returns 6 if the passenger count does not respect the given limtis
+        Returns 7 if it is possible to create a flight
+    */
+}
+
 int main(){
     struct airport airports[AIRPORTSMAX];
-    /*struct flight flights[FLIGHTSMAX];*/
+    struct flight flights[FLIGHTSMAX];
 
     int airport_count = 0;
     int id_status = 0;
+    int i;
+    int len;
 
     char input[INPUTLEN];
     char command;
 
     char id[IDAPMAX + OFFSET];
+    
     char country[COUNTRYMAX + OFFSET];
     char city[CITYMAX + OFFSET];
+
+    char flightid[FLIGHTIDMAX + OFFSET];
+    char departureid[IDAPMAX + OFFSET];
+    char arrivalid[IDAPMAX + OFFSET];
+    char departuredate[DATEMAX + OFFSET];
+    char departuretime[TIMEMAX + OFFSET];
+    char flightduration[TIMEMAX + OFFSET];
+    int passengers;
 
     while (1){
         fgets(input, INPUTLEN, stdin);
@@ -140,9 +175,16 @@ int main(){
                 }
                 break;
             case 'l':
+                /* flight count missing
+                aplhabetic ordering missing too */
+                for(len = 0; input[len] != '\0'; len++);
+                if (len == 2)
+                    for(i = 0; i < airport_count; i++)
+                        printf("%s %s %s\n", airports[i].id, airports[i].city, airports[i].country);
                 break;
             case 'v':
-                printf("v");
+                sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
+                
                 break;
             case 'p':
                 printf("p");
