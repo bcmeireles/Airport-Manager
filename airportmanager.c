@@ -20,6 +20,7 @@
 #define FLIGHTSMAX 300000
 
 #define INPUTLEN 128
+#define MAXPASSENGERSLEN 3
 
 struct airport{
     char id[IDAPMAX + OFFSET]; /* 3 uppercase letters, these must be unique */
@@ -45,14 +46,15 @@ void create_airport(struct airport airports[], int airport_count, char id[], cha
     printf("airport %s\n", id);
 }
 
-void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){
+void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[]){
+/*void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){*/
     strcpy(flights[flight_count].id, id);
     strcpy(flights[flight_count].departure, departure);
     strcpy(flights[flight_count].arrival, arrival);
     strcpy(flights[flight_count].date, date);
     strcpy(flights[flight_count].time, time);
     strcpy(flights[flight_count].duration, duration);
-    flights[flight_count].passengers = passengers;
+    /*flights[flight_count].passengers = passengers;*/
     printf("%s %s %s %s %s", id, departure, arrival, date, time);
 }
 
@@ -99,7 +101,7 @@ int check_airport(struct airport airports[], char id[], int airport_count){
     return(3);
 }
 
-int check_flight(struct flight flights[], char id[], int airport_count[], char date[], int duration[]){
+int check_flight(char id[]){
     /*
         Returns 0 if the ID is invalid
         Returns 1 if a flight with the same ID already exists in the same day
@@ -110,14 +112,33 @@ int check_flight(struct flight flights[], char id[], int airport_count[], char d
         Returns 6 if the passenger count does not respect the given limtis
         Returns 7 if it is possible to create a flight
     */
+
+    int i = 2;
+
+    if (!(isupper(id[0]) && isupper(id[1]) && id[2] != '0'))
+        return 0;
+    
+    while (id[i] != '\0'){
+        if (!isdigit(id[i]))
+            return 0;
+        
+        if (i == FLIGHTIDMAX)
+            return 0;
+        
+        i++;
+    
+    }
+
+    return 7;
 }
 
 int main(){
     struct airport airports[AIRPORTSMAX];
-    struct flight flights[FLIGHTSMAX];
+    /*struct flight flights[FLIGHTSMAX];*/
 
     int airport_count = 0;
-    int id_status = 0;
+    /*int flight_count = 0;*/
+    int check = 0;
     int i;
     int len;
 
@@ -157,8 +178,8 @@ int main(){
                 break;
             case 'a':
                 sscanf(input, "%*s%s%s %[^\n]", id, country, city);
-                id_status = check_airport(airports, id, airport_count);
-                switch(id_status){
+                check = check_airport(airports, id, airport_count);
+                switch(check){
                     case 0:
                         printf("invalid airport ID");
                         break;
@@ -184,7 +205,34 @@ int main(){
                 break;
             case 'v':
                 sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
-                
+                check = check_flight(flightid);
+                switch(check){
+                    case 0:
+                        printf("invalid flight code");
+                        break;
+                    case 1:
+                        printf("flight already exists");
+                        break;
+                    case 2:
+                        printf("no such airport ID\n");
+                        break;
+                    case 3:
+                        printf("too many flights\n");
+                        break;
+                    case 4:
+                        printf("invalid date\n");
+                        break;
+                    case 5:
+                        printf("invalid duration\n");
+                        break;
+                    case 6:
+                        printf("invalid capacity\n");
+                        break;
+                    
+                    case 7:
+                        /* valid */
+                        break;
+                }
                 break;
             case 'p':
                 printf("p");
