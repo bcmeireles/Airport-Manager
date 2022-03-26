@@ -25,7 +25,14 @@
 #define INPUTLEN 128
 #define MAXPASSENGERSLEN 3
 
-/* AIRPORT */
+/* STRUCTS */
+
+struct date{
+
+    int day;
+    int month;
+    int year;
+};
 
 struct airport{
 
@@ -33,6 +40,67 @@ struct airport{
     char country[COUNTRYMAX + OFFSET]; /* Non empty string with 30 max characters, can only contain upper and lower case letters */
     char city[CITYMAX + OFFSET]; /* Non empty string with 50 max characters, white spaces and tabs can occur */
 };
+
+struct flight{
+
+    char id[FLIGHTIDMAX + OFFSET]; /* Two flights can exist with the same code as long as they do not have the same departure date
+                                      String made of two uppercase letters followed by a number 1-9999, that can not start with 0 */
+    char departure[IDAPMAX + OFFSET]; /* Departure airport ID */
+    char arrival[IDAPMAX + OFFSET]; /* Arrival airport ID */
+    char date[DATEMAX + OFFSET]; /* Departure day */
+    char time[TIMEMAX + OFFSET]; /* Departure time */
+    char duration[TIMEMAX + OFFSET]; /* Can not be over 12 hours long */
+    int passengers; /* Max passengers allowed, can be any int between 10 and 100 (inclusive) */
+};
+
+/* DATE */
+
+void change_date(struct date currentdate[], int day, int month, int year){
+
+    currentdate[0].day = day;
+    currentdate[0].month = month;
+    currentdate[0].year = year;
+}
+
+int check_date(struct date date[], int day, int month, int year){
+
+    /* 
+        It is not possible to change to a date more than one year further or to a date before
+        the current one.
+
+        If it is possible to change the date, the function returns 0, else returns 1
+    */
+
+    /* More than a year in the future */
+
+    if (year > date[0].year + 1)
+        return 1;
+
+    if (year > date[0].year){
+        if (month > date[0].month)
+            return 1;
+        
+        if (month == date[0].month)
+            if (day > date[0].month)
+                return 1;
+    }
+
+    /* In the past */
+    if (year < date[0].year)
+        return 1;
+
+    if (year == date[0].year){
+        if (month < date[0].month)
+            return 1;
+        if (month == date[0].month)
+            if (day < date[0].day)
+                return 1;
+    }
+        
+   return 0;
+}
+
+/* AIRPORT */
 
 void create_airport(struct airport airports[], int airport_count, char id[], char country[], char city[]){
 
@@ -80,18 +148,6 @@ int check_airport(struct airport airports[], char id[], int airport_count){
 
 /* FLIGHT */
 
-struct flight{
-
-    char id[FLIGHTIDMAX + OFFSET]; /* Two flights can exist with the same code as long as they do not have the same departure date
-                                      String made of two uppercase letters followed by a number 1-9999, that can not start with 0 */
-    char departure[IDAPMAX + OFFSET]; /* Departure airport ID */
-    char arrival[IDAPMAX + OFFSET]; /* Arrival airport ID */
-    char date[DATEMAX + OFFSET]; /* Departure day */
-    char time[TIMEMAX + OFFSET]; /* Departure time */
-    char duration[TIMEMAX + OFFSET]; /* Can not be over 12 hours long */
-    int passengers; /* Max passengers allowed, can be any int between 10 and 100 (inclusive) */
-};
-
 void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){
     
     strcpy(flights[flight_count].id, id);
@@ -101,7 +157,6 @@ void create_flight(struct flight flights[], int flight_count, char id[], char de
     strcpy(flights[flight_count].time, time);
     strcpy(flights[flight_count].duration, duration);
     flights[flight_count].passengers = passengers;
-    printf("%s %s %s %s %s", id, departure, arrival, date, time);
 }
 
 int flight_exists(struct flight flights[], int airport_count, char id[], char date[]){
@@ -115,7 +170,7 @@ int flight_exists(struct flight flights[], int airport_count, char id[], char da
     return (0);
 }
 
-int check_flight(struct airport airports[], int airport_count, struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[]){
+int check_flight(struct date currentdate[], struct airport airports[], int airport_count, struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char duration[], int passengers){
 
     /*
         Returns 0 if the ID is invalid
@@ -129,6 +184,8 @@ int check_flight(struct airport airports[], int airport_count, struct flight fli
     */
 
     int i = 2;
+    int day, month, year;
+    int hrs, mins;
 
     if (!(isupper(id[0]) && isupper(id[1]) && id[2] != '0'))
         return 0;
@@ -152,61 +209,37 @@ int check_flight(struct airport airports[], int airport_count, struct flight fli
     if ((airport_exists(airports, airport_count, departure) == 0) || (airport_exists(airports, airport_count, arrival) == 0))
         return 2;
 
+    if (flight_count == FLIGHTSMAX)
+        return 3;
+
+    sscanf(date, "%d-%d-%d", &day, &month, &year);
+    if (check_date(currentdate, day, month, year)) /* check_date() returns 1 (considered true) if the date is invalid */
+        return 4;
+
+    sscanf(duration, "%d:%d", &hrs, &mins);
+    if (hrs > 12)
+        return 5;
+    if (hrs == 12)
+        if (mins > 0)
+            return 5;
+
+    if ((passengers < MINPASSENGERS )|| (passengers > MAXPASSENGERS))
+        return 6;
+
     return 7;
 }
 
-/* DATE */
+/* MULTI */
 
-struct date{
+int departure_count(struct flight flights[], int flight_count, char id[]){
+    int i;
+    int count = 0;
 
-    int day;
-    int month;
-    int year;
-};
+    for (i = 0; i < flight_count; i++)
+        if (strcmp(flights[i].departure, id) == 0)
+            count++;
 
-void change_date(struct date currentdate[], int day, int month, int year){
-
-    currentdate[0].day = day;
-    currentdate[0].month = month;
-    currentdate[0].year = year;
-}
-
-int check_date(struct date currentdate[], int day, int month, int year){
-
-    /* 
-        It is not possible to change to a date more than one year further or to a date before
-        the current one.
-
-        If it is possible to change the date, the function returns 0, else returns 1
-    */
-
-    /* More than a year in the future */
-
-    if (year > currentdate[0].year + 1)
-        return 1;
-
-    if (year > currentdate[0].year){
-        if (month > currentdate[0].month)
-            return 1;
-        
-        if (month == currentdate[0].month)
-            if (day > currentdate[0].month)
-                return 1;
-    }
-
-    /* In the past */
-    if (year < currentdate[0].year)
-        return 1;
-
-    if (year == currentdate[0].year){
-        if (month < currentdate[0].month)
-            return 1;
-        if (month == currentdate[0].month)
-            if (day < currentdate[0].day)
-                return 1;
-    }
-        
-   return 0;
+    return count;
 }
 
 int main(){
@@ -284,16 +317,17 @@ int main(){
                 }
                 break;
             case 'l':
-                /* flight count missing
-                aplhabetic ordering missing too */
+                /* aplhabetic ordering missing too */
+                /* specific IDs missing */
                 for (len = 0; input[len] != '\0'; len++);
                 if (len == 2)
                     for (i = 0; i < airport_count; i++)
-                        printf("%s %s %s\n", airports[i].id, airports[i].city, airports[i].country);
+                        printf("%s %s %s %d\n", airports[i].id, airports[i].city, airports[i].country, departure_count(flights, flight_count, airports[i].id));
                 break;
             case 'v':
+                /* flight listing missing */
                 sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
-                check = check_flight(airports, airport_count, flights, flight_count, flightid, departureid, arrivalid, departuredate);
+                check = check_flight(currentdate, airports, airport_count, flights, flight_count, flightid, departureid, arrivalid, departuredate, flightduration, passengers);
                 switch(check){
                     case 0:
                         printf("invalid flight code\n");
@@ -302,7 +336,10 @@ int main(){
                         printf("flight already exists\n");
                         break;
                     case 2:
-                        printf("no such airport ID\n");
+                        if (airport_exists(airports, airport_count, departureid))
+                            printf("%s: no such airport ID\n", arrivalid);
+                        else
+                            printf("%s: no such airport ID\n", departureid);
                         break;
                     case 3:
                         printf("too many flights\n");
@@ -318,7 +355,8 @@ int main(){
                         break;
                     
                     case 7:
-                        printf("%s %s %s %s %s\n", flightid, departureid, arrivalid, departuredate, departuretime);
+                        create_flight(flights, flight_count, flightid, departureid, arrivalid, departuredate, departuretime, flightduration, passengers);
+                        flight_count++;
                         break;
                 }
                 break;
