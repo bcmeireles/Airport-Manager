@@ -107,7 +107,6 @@ void create_airport(struct airport airports[], int airport_count, char id[], cha
     strcpy(airports[airport_count].id, id);
     strcpy(airports[airport_count].country, country);
     strcpy(airports[airport_count].city, city);
-    printf("airport %s\n", id);
 }
 
 int airport_exists(struct airport airports[], int airport_count, char id[]){
@@ -144,6 +143,24 @@ int check_airport(struct airport airports[], char id[], int airport_count){
         return(2);
     
     return(3);
+}
+
+void order_airports(struct airport ordered[], struct airport airports[], int airport_count){
+    struct airport temp[AIRPORTSMAX];
+    int tempcount = 0;
+    int i;
+
+    for (i = 0; i < airport_count; i++){
+        create_airport(ordered, tempcount, airports[i].id, airports[i].country, airports[i].city);
+        tempcount++;
+    }
+
+    for (i = 0; i < airport_count - 1; ++i)
+        if (strcmp(ordered[i].id, ordered[i+1].id ) > 0){
+            temp[i] = ordered[i];
+            ordered[i] = ordered[i+1];
+            ordered[i+1] = temp[i];
+        } 
 }
 
 /* FLIGHT */
@@ -245,7 +262,9 @@ int departure_count(struct flight flights[], int flight_count, char id[]){
 int main(){
     
     struct airport airports[AIRPORTSMAX];
+    struct airport ordered_airports[AIRPORTSMAX];
     struct flight flights[FLIGHTSMAX];
+    /*struct flight ordered_flights[FLIGHTSMAX];*/
     struct date currentdate[1];
 
     /* printf("%ld", sizeof(struct flight)); -> 44 */
@@ -312,17 +331,19 @@ int main(){
                         break;
                     case 3:
                         create_airport(airports, airport_count, id, country, city);
+                        printf("airport %s\n", id);
                         airport_count++;
                         break;
                 }
                 break;
             case 'l':
-                /* aplhabetic ordering missing too */
                 /* specific IDs missing */
                 for (len = 0; input[len] != '\0'; len++);
-                if (len == 2)
+                if (len == 2){
+                    order_airports(ordered_airports, airports, airport_count);
                     for (i = 0; i < airport_count; i++)
-                        printf("%s %s %s %d\n", airports[i].id, airports[i].city, airports[i].country, departure_count(flights, flight_count, airports[i].id));
+                        printf("%s %s %s %d\n", ordered_airports[i].id, ordered_airports[i].city, ordered_airports[i].country, departure_count(flights, flight_count, ordered_airports[i].id));
+                }
                 break;
             case 'v':
                 /* flight listing missing */
