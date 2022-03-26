@@ -191,21 +191,28 @@ int check_airport(struct airport airports[], char id[], int airport_count){
 }
 
 void order_airports(struct airport ordered[], struct airport airports[], int airport_count){
-    struct airport temp[AIRPORTSMAX];
-    int tempcount = 0;
-    int i;
+    struct airport temp;
+    int i, j;
 
     for (i = 0; i < airport_count; i++){
-        create_airport(ordered, tempcount, airports[i].id, airports[i].country, airports[i].city);
-        tempcount++;
+        create_airport(ordered, i, airports[i].id, airports[i].country, airports[i].city);
     }
 
-    for (i = 0; i < airport_count - 1; ++i)
-        if (strcmp(ordered[i].id, ordered[i+1].id ) > 0){
-            temp[i] = ordered[i];
-            ordered[i] = ordered[i+1];
-            ordered[i+1] = temp[i];
-        } 
+    for (i = 0; i < airport_count; i++){
+        for (j = 0; j < airport_count - 1 - i; j++){
+            if (strcmp(ordered[j].id, ordered[j+1].id) > 0){
+                /*
+                strcpy(temp.id, ordered[j].id);
+                strcpy(ordered[j].id, ordered[j+1].id);
+                strcpy(ordered[j+1].id, temp);
+                */
+
+                temp = ordered[j];
+                ordered[j] = ordered[j+1];
+                ordered[j+1] = temp;
+            }
+        }
+    }
 }
 
 /* FLIGHT */
