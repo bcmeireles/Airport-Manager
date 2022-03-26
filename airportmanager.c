@@ -96,8 +96,53 @@ int check_date(struct date date[], int day, int month, int year){
             if (day < date[0].day)
                 return 1;
     }
-        
+    
    return 0;
+}
+
+int parse_date(char date[], int pos){
+
+    /* 
+        Returns the integrer with the value of
+        Day if pos is 0,
+        Month if pos is 1,
+        Year if pos is 2
+    */
+
+    int day, month, year;
+
+    sscanf(date, "%d-%d-%d", &day, &month, &year);
+
+    switch(pos){
+        case 0:
+            return day;
+        case 1:
+            return month;
+        case 2:
+            return year;
+    }
+
+    return 0;
+}
+
+int parse_time(char time[], int pos){
+
+    /* 
+        Returns the integrer with the value of
+        Hours if pos is 0,
+        Minutes if pos is 1
+    */
+
+    int hours, minutes;
+
+    sscanf(time, "%d-%d", &hours, &minutes);
+
+    if (pos == 0)
+        return hours;
+    else
+        return minutes;
+
+    return 0;
 }
 
 /* AIRPORT */
@@ -248,7 +293,7 @@ int check_flight(struct date currentdate[], struct airport airports[], int airpo
 
 /* MULTI */
 
-int departure_count(struct flight flights[], int flight_count, char id[]){
+int departure_count(struct flight flights[], int flight_count, char id[]){ /* Flight + Airport */
     int i;
     int count = 0;
 
@@ -257,6 +302,14 @@ int departure_count(struct flight flights[], int flight_count, char id[]){
             count++;
 
     return count;
+}
+
+char arrival_date(){ /* Flight + Date */
+    return 0;
+}
+
+char arrival_time(){ /* Flight + Date */
+    return 0;
 }
 
 int main(){
@@ -344,9 +397,11 @@ int main(){
                     for (i = 0; i < airport_count; i++)
                         printf("%s %s %s %d\n", ordered_airports[i].id, ordered_airports[i].city, ordered_airports[i].country, departure_count(flights, flight_count, ordered_airports[i].id));
                 }
+                else{
+                    continue;
+                }
                 break;
             case 'v':
-                /* flight listing missing */
                 for (len = 0; input[len] != '\0'; len++);
                 if (len > 2){
                     sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
@@ -385,7 +440,7 @@ int main(){
                 }
                 else
                     for (i = 0; i < flight_count; i++)
-                        printf("%s %s %s %s %s\n", flights[i].id, flights[i].departure, flights[i].arrival, flights[i].date, flights[i].time);
+                        printf("%s %s %s %02d-%02d-%d %s\n", flights[i].id, flights[i].departure, flights[i].arrival, parse_date(flights[i].date, 0), parse_date(flights[i].date, 1), parse_date(flights[i].date, 2), flights[i].time);
                 break;
             case 'p':
                 printf("p");
@@ -404,7 +459,7 @@ int main(){
                     switch(check){
                         case 0:
                             change_date(currentdate, day, month, year);
-                            printf("%d-%d-%d\n", day, month, year);
+                            printf("%02d-%02d-%d\n", day, month, year);
                             break;
                         case 1:
                             printf("invalid date\n");
