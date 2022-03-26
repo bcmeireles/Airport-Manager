@@ -326,39 +326,45 @@ int main(){
                 break;
             case 'v':
                 /* flight listing missing */
-                sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
-                check = check_flight(currentdate, airports, airport_count, flights, flight_count, flightid, departureid, arrivalid, departuredate, flightduration, passengers);
-                switch(check){
-                    case 0:
-                        printf("invalid flight code\n");
-                        break;
-                    case 1:
-                        printf("flight already exists\n");
-                        break;
-                    case 2:
-                        if (airport_exists(airports, airport_count, departureid))
-                            printf("%s: no such airport ID\n", arrivalid);
-                        else
-                            printf("%s: no such airport ID\n", departureid);
-                        break;
-                    case 3:
-                        printf("too many flights\n");
-                        break;
-                    case 4:
-                        printf("invalid date\n");
-                        break;
-                    case 5:
-                        printf("invalid duration\n");
-                        break;
-                    case 6:
-                        printf("invalid capacity\n");
-                        break;
-                    
-                    case 7:
-                        create_flight(flights, flight_count, flightid, departureid, arrivalid, departuredate, departuretime, flightduration, passengers);
-                        flight_count++;
-                        break;
+                for (len = 0; input[len] != '\0'; len++);
+                if (len > 2){
+                    sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
+                    check = check_flight(currentdate, airports, airport_count, flights, flight_count, flightid, departureid, arrivalid, departuredate, flightduration, passengers);
+                    switch(check){
+                        case 0:
+                            printf("invalid flight code\n");
+                            break;
+                        case 1:
+                            printf("flight already exists\n");
+                            break;
+                        case 2:
+                            if (airport_exists(airports, airport_count, departureid))
+                                printf("%s: no such airport ID\n", arrivalid);
+                            else
+                                printf("%s: no such airport ID\n", departureid);
+                            break;
+                        case 3:
+                            printf("too many flights\n");
+                            break;
+                        case 4:
+                            printf("invalid date\n");
+                            break;
+                        case 5:
+                            printf("invalid duration\n");
+                            break;
+                        case 6:
+                            printf("invalid capacity\n");
+                            break;
+                        
+                        case 7:
+                            create_flight(flights, flight_count, flightid, departureid, arrivalid, departuredate, departuretime, flightduration, passengers);
+                            flight_count++;
+                            break;
+                    }
                 }
+                else
+                    for (i = 0; i < flight_count; i++)
+                        printf("%s %s %s %s %s\n", flights[i].id, flights[i].departure, flights[i].arrival, flights[i].date, flights[i].time);
                 break;
             case 'p':
                 printf("p");
