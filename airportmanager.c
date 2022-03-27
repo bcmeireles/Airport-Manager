@@ -22,7 +22,7 @@
 #define STARTMONTH 1
 #define STARTYEAR 2022
 
-#define INPUTLEN 100
+#define INPUTLEN 200
 #define MAXPASSENGERSLEN 3
 
 /* STRUCTS */
@@ -135,7 +135,7 @@ int parse_time(char time[], int pos){
 
     int hours, minutes;
 
-    sscanf(time, "%d-%d", &hours, &minutes);
+    sscanf(time, "%d:%d", &hours, &minutes);
 
     if (pos == 0)
         return hours;
@@ -315,22 +315,48 @@ int departure_count(struct flight flights[], int flight_count, char id[]){ /* Fl
     return count;
 }
 
-char arrival_date_n_corrected_hour(struct flight flight, int arr_hrs, int pos){ /* Flight + Date */
+int arrival_time_aux(struct flight flight, int pos){ /* Flight + Date */
+    int arr_hrs, arr_mins;
+
+    arr_hrs = parse_time(flight.time, 0) + parse_time(flight.duration, 0);
+    arr_mins = parse_time(flight.time, 1) + parse_time(flight.duration, 1);
+
+
+    if (arr_mins == 60){
+        arr_mins = 0;
+        arr_hrs++;
+    }
+
+    if (arr_mins > 60){
+        arr_mins -= 60;
+        arr_hrs++;
+    }
+
+    if (pos == 0)
+        return arr_hrs;
+    else
+        return arr_mins;
+}
+
+char arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
 
     /* 
         Returns the integrer with the value of
         Day if pos is 0,
         Month if pos is 1,
         Year if pos is 2,
-        New hour (since when this function is called, for the time, while minutes are correct, hours can exceed possible values)
+        New hour (since when this function is called, for the time, while minutes are correct, hours can exceed possible values) if pos 3
     */
 
-    int day, mo, y;
+    int day, mo, y, arr_hrs;
 
     day = parse_date(flight.date, 0);
     mo = parse_date(flight.date, 1);
     y = parse_date(flight.date, 2);
 
+    arr_hrs = arrival_time_aux(flight, 0);
+
+    printf("day: %d\nmo: %d\ny: %d\nhrs: %d\n", day, mo, y, arr_hrs);
     
     if (arr_hrs > 23){
         arr_hrs -= 24;
@@ -368,6 +394,9 @@ char arrival_date_n_corrected_hour(struct flight flight, int arr_hrs, int pos){ 
     
     }
 
+    printf("day: %d\nmo: %d\ny: %d\nhrs: %d\n", day, mo, y, arr_hrs);
+    printf("%d-%d-%d %d:10\n", day, mo, y, arr_hrs);
+
     switch(pos){
         case 0:
             return day;
@@ -382,27 +411,7 @@ char arrival_date_n_corrected_hour(struct flight flight, int arr_hrs, int pos){ 
     return 0;
 }
 
-int arrival_time_mins(struct flight flight, int pos){ /* Flight + Date */
-    int arr_hrs, arr_mins;
 
-    arr_hrs = parse_time(flight.time, 0); + parse_time(flight.duration, 0);
-    arr_mins = parse_time(flight.time, 1) + parse_time(flight.duration, 1);
-
-    if (arr_mins == 60){
-        arr_mins = 0;
-        arr_hrs++;
-    }
-
-    if (arr_mins > 60){
-        arr_mins -= 60;
-        arr_hrs++;
-    }
-
-    if (pos == 0)
-        return arr_hrs;
-    else
-        return arr_mins;
-}
 
 
 int main(){
@@ -553,7 +562,9 @@ int main(){
                 printf("p");
                 break;
             case 'c':
-                printf("c");
+                
+                printf("%d-%d-%d %d:10\n", arrival_date_n_hour(flights[0], 0), arrival_date_n_hour(flights[0], 1), arrival_date_n_hour(flights[0], 2), arrival_date_n_hour(flights[0], 3));
+                
                 break;
             case 't':
                 sscanf(input, "%*s %d-%d-%d", &day, &month, &year);
