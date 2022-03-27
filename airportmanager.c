@@ -338,7 +338,7 @@ int arrival_time_aux(struct flight flight, int pos){ /* Flight + Date */
         return arr_mins;
 }
 
-char arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
+int arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
 
     /* 
         Returns the integrer with the value of
@@ -355,8 +355,6 @@ char arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
     y = parse_date(flight.date, 2);
 
     arr_hrs = arrival_time_aux(flight, 0);
-
-    printf("day: %d\nmo: %d\ny: %d\nhrs: %d\n", day, mo, y, arr_hrs);
     
     if (arr_hrs > 23){
         arr_hrs -= 24;
@@ -394,9 +392,6 @@ char arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
     
     }
 
-    printf("day: %d\nmo: %d\ny: %d\nhrs: %d\n", day, mo, y, arr_hrs);
-    printf("%d-%d-%d %d:10\n", day, mo, y, arr_hrs);
-
     switch(pos){
         case 0:
             return day;
@@ -411,15 +406,139 @@ char arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
     return 0;
 }
 
+int compare_flights(struct flight flight1, struct flight flight2, int mode){
+    /*
+        Compares departure dates and times if mode is set to 0, arrival dates and times if mode is set to 1
+        Returns 1 if flight1 arrives after flight2, 0 if not
+    */
+
+    int day1, mo1, y1, hrs1, mins1;
+    int day2, mo2, y2, hrs2, mins2;
+
+    if (mode == 1){
+
+        y1 = arrival_date_n_hour(flight1, 2);
+        y2 = arrival_date_n_hour(flight2, 2);
+    }
+
+    else{
+        y1 = parse_date(flight1.date, 2);
+        y2 = parse_date(flight2.date, 2);
+    }
 
 
+
+    if (y1 > y2)
+        return 1;
+    if (y1 < y2)
+        return 0;
+
+
+    if (mode == 1){
+        mo1 = arrival_date_n_hour(flight1, 1);
+        mo2 = arrival_date_n_hour(flight2, 1);
+    }
+
+    else{
+        mo1 = parse_date(flight1.date, 1);
+        mo2 = parse_date(flight2.date, 1);
+    }
+
+
+
+    if ((y1 == y2) && (mo1 > mo2))
+        return 1;
+
+    if ((y1 == y2) && (mo1 < mo2))
+        return 0;
+
+
+
+    if (mode == 1){
+
+        day1 = arrival_date_n_hour(flight1, 0);
+        day2 = arrival_date_n_hour(flight2, 0);
+    }
+
+    else{
+        day1 = parse_date(flight1.date, 0);
+        day2 = parse_date(flight2.date, 0);
+    }
+
+
+
+    if ((mo1 == mo2) && (day1 > day2))
+        return 1;
+
+    if ((mo1 == mo2) && (day1 < day2))
+        return 0;
+
+
+
+    if (mode == 1){
+        hrs1 = arrival_date_n_hour(flight1, 3);
+        hrs2 = arrival_date_n_hour(flight2, 3);
+    }
+
+    else{
+        hrs1 = parse_time(flight1.time, 0);
+        hrs2 = parse_time(flight2.time, 0);
+    }
+
+
+
+    if ((day1 == day2) && (hrs1 > hrs2))
+        return 1;
+    
+    if ((day1 == day2) && (hrs1 < hrs2))
+        return 0;
+
+
+    if (mode == 1){
+        mins1 = arrival_time_aux(flight1, 1);
+        mins2 = arrival_time_aux(flight2, 1);
+    }
+    else{
+        mins1 = parse_time(flight1.time, 1);
+        mins2 = parse_time(flight2.time, 1);
+    }
+
+
+
+    if ((hrs1 == hrs2) && (mins1 > mins2))
+        return 1;
+
+    if ((hrs1 == hrs2) && (mins1 < mins2))
+        return 0;
+
+    return 0;
+}
+
+void order_flights(struct flight ordered[], struct flight flights[], int flight_count, int mode){
+    struct flight temp;
+    int i, j;
+
+    for (i = 0; i < flight_count; i++){
+        create_flight(ordered, i, flights[i].id, flights[i].departure, flights[i].arrival, flights[i].date, flights[i].time, flights[i].duration, flights[i].passengers);
+    }
+
+    for (i = 0; i < flight_count; i++){
+        for (j = 0; j < flight_count - 1 - i; j++){
+            if (compare_flights(ordered[j], ordered[j + 1], mode)){
+                temp = ordered[j];
+                ordered[j] = ordered[j+1];
+                ordered[j+1] = temp;
+            }
+        }
+    }
+}
 
 int main(){
     
     struct airport airports[AIRPORTSMAX];
     struct airport ordered_airports[AIRPORTSMAX];
     struct flight flights[FLIGHTSMAX];
-    /*struct flight ordered_flights[FLIGHTSMAX];*/
+    struct flight ordered_flights[FLIGHTSMAX];
     struct date currentdate[1];
 
     /* printf("%ld", sizeof(struct flight)); -> 44 */
@@ -559,12 +678,32 @@ int main(){
                         printf("%s %s %s %02d-%02d-%d %s\n", flights[i].id, flights[i].departure, flights[i].arrival, parse_date(flights[i].date, 0), parse_date(flights[i].date, 1), parse_date(flights[i].date, 2), flights[i].time);
                 break;
             case 'p':
-                printf("p");
+                sscanf(input, "%*s %s", id);
+                if (airport_exists(airports, airport_count, id) == 0)
+                    printf("%s: no such airport ID\n", id);
+                else{
+                    order_flights(ordered_flights, flights, flight_count, 0);
+                    for (i = 0; i < flight_count; i++){
+                        if (strcmp(id, ordered_flights[i].departure) == 0)
+                            printf("%s %s %s %s\n", ordered_flights[i].id, ordered_flights[i].arrival, ordered_flights[i].date, ordered_flights[i].time);
+                    }
+                }
                 break;
             case 'c':
-                
-                printf("%d-%d-%d %d:10\n", arrival_date_n_hour(flights[0], 0), arrival_date_n_hour(flights[0], 1), arrival_date_n_hour(flights[0], 2), arrival_date_n_hour(flights[0], 3));
-                
+                sscanf(input, "%*s %s", id);
+                if (airport_exists(airports, airport_count, id) == 0)
+                    printf("%s: no such airport ID\n", id);
+                else{
+                    order_flights(ordered_flights, flights, flight_count, 1);
+                    for (i = 0; i < flight_count; i++){
+                        if (strcmp(id, ordered_flights[i].arrival) == 0)
+                            printf("%s %s %02d-%02d-%d %02d:%02d\n", ordered_flights[i].id, ordered_flights[i].departure, arrival_date_n_hour(ordered_flights[i], 0), arrival_date_n_hour(ordered_flights[i], 1), arrival_date_n_hour(ordered_flights[i], 2), arrival_date_n_hour(ordered_flights[i], 3), arrival_time_aux(ordered_flights[i], 1));
+                    }
+                }
+
+                /*
+                printf("%02d-%02d-%d %02d:%02d\n", arrival_date_n_hour(flights[0], 0), arrival_date_n_hour(flights[0], 1), arrival_date_n_hour(flights[0], 2), arrival_date_n_hour(flights[0], 3), arrival_time_aux(flights[0], 1));
+                */
                 break;
             case 't':
                 sscanf(input, "%*s %d-%d-%d", &day, &month, &year);
