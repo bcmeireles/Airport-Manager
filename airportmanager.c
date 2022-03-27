@@ -22,7 +22,7 @@
 #define STARTMONTH 1
 #define STARTYEAR 2022
 
-#define INPUTLEN 128
+#define INPUTLEN 100
 #define MAXPASSENGERSLEN 3
 
 /* STRUCTS */
@@ -155,7 +155,6 @@ void create_airport(struct airport airports[], int airport_count, char id[], cha
 }
 
 int airport_exists(struct airport airports[], int airport_count, char id[]){
-
     int i;
 
     for (i = 0; i < airport_count; i++){
@@ -163,6 +162,17 @@ int airport_exists(struct airport airports[], int airport_count, char id[]){
             return(1);
     }
     return (0);
+}
+
+int get_index_by_id(struct airport airports[], int airport_count, char id[]){
+    int i;
+
+    for (i = 0; i < airport_count; i++){
+        if (strcmp(airports[i].id, id) == 0)
+            return i;
+    }
+
+    return 0;
 }
 
 int check_airport(struct airport airports[], char id[], int airport_count){
@@ -201,12 +211,6 @@ void order_airports(struct airport ordered[], struct airport airports[], int air
     for (i = 0; i < airport_count; i++){
         for (j = 0; j < airport_count - 1 - i; j++){
             if (strcmp(ordered[j].id, ordered[j+1].id) > 0){
-                /*
-                strcpy(temp.id, ordered[j].id);
-                strcpy(ordered[j].id, ordered[j+1].id);
-                strcpy(ordered[j+1].id, temp);
-                */
-
                 temp = ordered[j];
                 ordered[j] = ordered[j+1];
                 ordered[j+1] = temp;
@@ -311,13 +315,95 @@ int departure_count(struct flight flights[], int flight_count, char id[]){ /* Fl
     return count;
 }
 
-char arrival_date(){ /* Flight + Date */
+char arrival_date_n_corrected_hour(struct flight flight, int arr_hrs, int pos){ /* Flight + Date */
+
+    /* 
+        Returns the integrer with the value of
+        Day if pos is 0,
+        Month if pos is 1,
+        Year if pos is 2,
+        New hour (since when this function is called, for the time, while minutes are correct, hours can exceed possible values)
+    */
+
+    int day, mo, y;
+
+    day = parse_date(flight.date, 0);
+    mo = parse_date(flight.date, 1);
+    y = parse_date(flight.date, 2);
+
+    
+    if (arr_hrs > 23){
+        arr_hrs -= 24;
+
+        /* New day */
+
+        if ((day == 31) && (mo == 12)){
+            day = 1;
+            mo = 1;
+            y++;
+        }
+
+        else{
+            if ((mo % 2 == 0) && (mo != 2))
+                if (day == 30){
+                    day = 1;
+                    mo++;
+                }
+                else
+                    day++;
+            
+            else if (mo % 2 == 1)
+                if (day == 31){
+                    day = 1;
+                    mo++;
+                }
+                else
+                    day++;
+
+            else if ((mo == 2) && (day == 28)){
+                day = 1;
+                mo++;
+            }
+        }
+    
+    }
+
+    switch(pos){
+        case 0:
+            return day;
+        case 1:
+            return mo;
+        case 2:
+            return y;
+        case 3:
+            return arr_hrs;
+    }
+    
     return 0;
 }
 
-char arrival_time(){ /* Flight + Date */
-    return 0;
+int arrival_time_mins(struct flight flight, int pos){ /* Flight + Date */
+    int arr_hrs, arr_mins;
+
+    arr_hrs = parse_time(flight.time, 0); + parse_time(flight.duration, 0);
+    arr_mins = parse_time(flight.time, 1) + parse_time(flight.duration, 1);
+
+    if (arr_mins == 60){
+        arr_mins = 0;
+        arr_hrs++;
+    }
+
+    if (arr_mins > 60){
+        arr_mins -= 60;
+        arr_hrs++;
+    }
+
+    if (pos == 0)
+        return arr_hrs;
+    else
+        return arr_mins;
 }
+
 
 int main(){
     
@@ -335,8 +421,11 @@ int main(){
     int i;
     int len;
 
-    char input[INPUTLEN];
+    char input[INPUTLEN + OFFSET];
     char command;
+
+    char *element;
+    int index_id;
 
     char id[IDAPMAX + OFFSET];
     
@@ -360,7 +449,7 @@ int main(){
     currentdate[0].year = STARTYEAR;
 
     while (1){
-        fgets(input, INPUTLEN, stdin);
+        fgets(input, INPUTLEN + OFFSET, stdin);
         command = input[0];
 
         /*
@@ -370,7 +459,7 @@ int main(){
             v : adds a new flight or shows all existing ones
             p : lists all flights with departure from an airport
             c : lista all flight with arrival at an airport
-            t : advances the data of the system
+            t : advances the date of the system
         */ 
         switch(command){
             case 'q':
@@ -397,7 +486,6 @@ int main(){
                 }
                 break;
             case 'l':
-                /* specific IDs missing */
                 for (len = 0; input[len] != '\0'; len++);
                 if (len == 2){
                     order_airports(ordered_airports, airports, airport_count);
@@ -405,7 +493,19 @@ int main(){
                         printf("%s %s %s %d\n", ordered_airports[i].id, ordered_airports[i].city, ordered_airports[i].country, departure_count(flights, flight_count, ordered_airports[i].id));
                 }
                 else{
-                    continue;
+                    element = strtok(input + 2, " \n");
+
+                    while (element != NULL){
+                        if (airport_exists(airports, airport_count, element) == 0)
+                            printf("%s: no such airport ID\n", element);
+
+                        else{
+                            index_id = get_index_by_id(airports, airport_count, element);
+                            printf("%s %s %s %d\n", element, airports[index_id].city, airports[index_id].country, departure_count(flights, flight_count, element));
+                        }
+
+                        element = strtok(NULL, " \n");
+                    }
                 }
                 break;
             case 'v':
@@ -456,22 +556,16 @@ int main(){
                 printf("c");
                 break;
             case 't':
-                /* Accepting a command with only t to get the current date for debugging purposes, will be removed in the final build */
-                for (len = 0; input[len] != '\0'; len++);
-                if (len == 2)
-                    printf("%d-%d-%d\n", currentdate[0].day, currentdate[0].month, currentdate[0].year);
-                else {
-                    sscanf(input, "%*s %d-%d-%d", &day, &month, &year);
-                    check = check_date(currentdate, day, month, year);
-                    switch(check){
-                        case 0:
-                            change_date(currentdate, day, month, year);
-                            printf("%02d-%02d-%d\n", day, month, year);
-                            break;
-                        case 1:
-                            printf("invalid date\n");
-                            break;
-                    }
+                sscanf(input, "%*s %d-%d-%d", &day, &month, &year);
+                check = check_date(currentdate, day, month, year);
+                switch(check){
+                    case 0:
+                        change_date(currentdate, day, month, year);
+                        printf("%02d-%02d-%d\n", day, month, year);
+                        break;
+                    case 1:
+                        printf("invalid date\n");
+                        break;
                 }
                 break;
         }
