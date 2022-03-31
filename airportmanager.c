@@ -368,7 +368,7 @@ int arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
         }
 
         else{
-            if ((mo % 2 == 0) && (mo != 2))
+            if ((mo == 4) || (mo == 6) || (mo == 9) || (mo == 11))
                 if (day == 30){
                     day = 1;
                     mo++;
@@ -376,7 +376,7 @@ int arrival_date_n_hour(struct flight flight, int pos){ /* Flight + Date */
                 else
                     day++;
             
-            else if (mo % 2 == 1)
+            else if ((mo == 1) || (mo == 3) || (mo == 5) || (mo == 7) || (mo == 8) || (mo == 10) || (mo == 12))
                 if (day == 31){
                     day = 1;
                     mo++;
@@ -532,7 +532,33 @@ void order_flights(struct flight ordered[], struct flight flights[], int flight_
         }
     }
 }
+/*
+void order_flights(struct flight ordered[], struct flight flights[], int flight_count, int mode){
+    int i=0,j;
+    int swapped=0;
+    struct flight temp;
 
+    for (i = 0; i < flight_count; i++){
+        create_flight(ordered, i, flights[i].id, flights[i].departure, flights[i].arrival, flights[i].date, flights[i].time, flights[i].duration, flights[i].passengers);
+    }
+
+    do{
+        swapped = 0;
+        for (j=0; j<(flight_count-1-i);j++){
+            if(compare_flights(flights[j],flights[j+1], mode)){
+                temp = flights[j];
+                flights[j] = flights[j-1];
+                flights[j-1] = temp;
+                swapped=1;
+            }
+        }
+        i++;
+    } while(swapped==1);
+
+    return;
+}
+
+*/
 int main(){
     
     struct airport airports[AIRPORTSMAX];
