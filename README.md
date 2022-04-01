@@ -1,3 +1,4 @@
+
 # Airport-Manager
 
 Mid term project for Introduction to Algorithms and Data Structures
@@ -64,3 +65,11 @@ If a command generates more than one error, only the first one is shown.
 		- `invalid airport ID` if `airportID` is not a string with only uppercase letters
 		- `too many airports` if the new airport, if created, exceeds the maximum number of airports allowed by the system
 		- `duplicate airport` if an airport with `airportID` as it's identifier already exists
+- **l** - lists the airports
+	- Input: `l [ <airportID> <airportID> ... ]`
+	- Output: `<airportID> <city> <country> #flights for each airport, where #flights is the amount of flights with departure from the airport`
+		- If the command is executed with no arguments, all airports are listed alphabetically from their ID
+		- If the command is executed with an ID list, airports are listed in order of their identifiers
+	- Errors
+		- `<airportID>: no such airport ID` if no airports exist with `<airportID>` as it's identifier
+	
