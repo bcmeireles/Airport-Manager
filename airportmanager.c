@@ -5,32 +5,50 @@
 
 #define OFFSET 1
 
+/* Maximum amount of characters an airport ID can have */
 #define IDAPMAX 3
+/* Maximum amount of characters a country name can have */
 #define COUNTRYMAX 30
+/* Maximum amount of characters a city name can have */
 #define CITYMAX 50
+/* Maximum amount of airports that can be created */
 #define AIRPORTSMAX 40
 
+
+/* Maximum amount of characters a flight ID can have */
 #define FLIGHTIDMAX 6
+/* Minimum passenger count a flight must have */
 #define MINPASSENGERS 10
+/* Maximum passenger count a flight can have */
 #define MAXPASSENGERS 100
+/* Maximum duration, in hours, a flight can have */
 #define MAXFLIGHTDURATION 12
+/* Maximum amount of flights that can be created */
 #define FLIGHTSMAX 30000
 
+/* Maximum amount of characters a date can be represented as*/
 #define DATEMAX 10
+/* Maximum amount of characters a time can be represented as*/
 #define TIMEMAX 5
+
+/* Default date's day */
 #define STARTDAY 1
+/* Default date's month*/
 #define STARTMONTH 1
+/* Default day's year*/
 #define STARTYEAR 2022
 
-#define INPUTLEN 200
-#define MAXPASSENGERSLEN 3
+/* Maximum amount of characters the user input can have */
+#define INPUTLEN 100
 
+/* Airport errors */
 #define INV_AP_ID_ERR "invalid airport ID"
 #define CAP_AP_ERR "too many airports"
 #define DUP_AP_ERR "duplicate airport"
-#define NOT_FOUND_AP_ID_ERR "no such airport ID"
+#define NO_AP_ID_ERR "no such airport ID"
 #define INV_DATE_ERR "invalid date"
 
+/* Flight errors */
 #define INV_FLIGHT_ID_ERR "invalid flight code"
 #define CAP_FLIGHTS_ERR "too many flights"
 #define DUP_FLIGHT_ERR "flight already exists"
@@ -48,21 +66,20 @@ struct date{
 
 struct airport{
 
-    char id[IDAPMAX + OFFSET]; /* 3 uppercase letters, these must be unique */
-    char country[COUNTRYMAX + OFFSET]; /* Non empty string with 30 max characters, can only contain upper and lower case letters */
-    char city[CITYMAX + OFFSET]; /* Non empty string with 50 max characters, white spaces and tabs can occur */
+    char id[IDAPMAX + OFFSET]; 
+    char country[COUNTRYMAX + OFFSET]; 
+    char city[CITYMAX + OFFSET];
 };
 
 struct flight{
 
-    char id[FLIGHTIDMAX + OFFSET]; /* Two flights can exist with the same code as long as they do not have the same departure date
-                                      String made of two uppercase letters followed by a number 1-9999, that can not start with 0 */
-    char departure[IDAPMAX + OFFSET]; /* Departure airport ID */
-    char arrival[IDAPMAX + OFFSET]; /* Arrival airport ID */
-    char date[DATEMAX + OFFSET]; /* Departure day */
-    char time[TIMEMAX + OFFSET]; /* Departure time */
-    char duration[TIMEMAX + OFFSET]; /* Can not be over 12 hours long */
-    int passengers; /* Max passengers allowed, can be any int between 10 and 100 (inclusive) */
+    char id[FLIGHTIDMAX + OFFSET];
+    char departure[IDAPMAX + OFFSET]; 
+    char arrival[IDAPMAX + OFFSET];
+    char date[DATEMAX + OFFSET]; 
+    char time[TIMEMAX + OFFSET]; 
+    char duration[TIMEMAX + OFFSET]; 
+    int passengers; 
 };
 
 /* DATE */
@@ -80,7 +97,8 @@ void change_date(struct date currentdate[], int day, int month, int year){
 
 int check_date(struct date date[], int day, int month, int year){
     /* 
-    It is not possible to change to a date more than one year further or to a date before
+    It is not possible to change to a date more than one year further or 
+    to a date before
     the current one.
     If it is possible to change the date, the function returns 0, else returns 1
     */
@@ -160,7 +178,8 @@ int parse_time(char time[], int pos){
 
 /* AIRPORT */
 
-void create_airport(struct airport airports[], int airport_count, char id[], char country[], char city[]){
+void create_airport(struct airport airports[], int airport_count, char id[], 
+                    char country[], char city[]){
     /*
     Creates a new airport, adding it to the array airports
     */
@@ -186,7 +205,8 @@ int airport_exists(struct airport airports[], int airport_count, char id[]){
 
 int get_index_by_id(struct airport airports[], int airport_count, char id[]){
     /*
-    Receiving an ID as argument, returns the index of said airport in the airports array
+    Receiving an ID as argument, returns the index of said airport 
+    in the airports array
     */
 
     int i;
@@ -223,7 +243,8 @@ int check_airport(struct airport airports[], char id[], int airport_count){
     return(3);
 }
 
-void sort_airports(struct airport sorted[], struct airport airports[], int airport_count){
+void sort_airports(struct airport sorted[], struct airport airports[], 
+                    int airport_count){
     /*
     Using bubble sort, orders the airports aplhabetically from their IDs
     */
@@ -232,7 +253,8 @@ void sort_airports(struct airport sorted[], struct airport airports[], int airpo
     int i, j;
 
     for (i = 0; i < airport_count; i++){
-        create_airport(sorted, i, airports[i].id, airports[i].country, airports[i].city);
+        create_airport(sorted, i, airports[i].id, airports[i].country, 
+                        airports[i].city);
     }
 
     for (i = 0; i < airport_count; i++){
@@ -248,7 +270,9 @@ void sort_airports(struct airport sorted[], struct airport airports[], int airpo
 
 /* FLIGHT */
 
-void create_flight(struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char time[], char duration[], int passengers){
+void create_flight(struct flight flights[], int flight_count, char id[], 
+                    char departure[], char arrival[], char date[], char time[], 
+                    char duration[], int passengers){
     /*
     Creates a new flight, adding it to the array flights
     */
@@ -262,7 +286,8 @@ void create_flight(struct flight flights[], int flight_count, char id[], char de
     flights[flight_count].passengers = passengers;
 }
 
-int flight_exists(struct flight flights[], int airport_count, char id[], char date[]){
+int flight_exists(struct flight flights[], int airport_count, char id[], 
+                    char date[]){
     /*
     Checks if a flight exists, returning  1 if so
     */ 
@@ -270,13 +295,17 @@ int flight_exists(struct flight flights[], int airport_count, char id[], char da
     int i;
 
     for (i = 0; i < airport_count; i++){
-        if ((strcmp(flights[i].id, id) == 0) && (strcmp(flights[i].date, date) == 0))
+        if ((strcmp(flights[i].id, id) == 0) 
+                && (strcmp(flights[i].date, date) == 0))
             return(1);
     }
     return (0);
 }
 
-int check_flight(struct date currentdate[], struct airport airports[], int airport_count, struct flight flights[], int flight_count, char id[], char departure[], char arrival[], char date[], char duration[], int passengers){
+int check_flight(struct date currentdate[], struct airport airports[], 
+                int airport_count, struct flight flights[], int flight_count, 
+                char id[], char departure[], char arrival[], char date[], 
+                char duration[], int passengers){
     /*
     Returns 0 if the ID is invalid
     Returns 1 if a flight with the same ID already exists in the same day
@@ -307,18 +336,21 @@ int check_flight(struct date currentdate[], struct airport airports[], int airpo
     }
 
     for (i = 0; i < flight_count; i++){
-        if ((strcmp(flights[i].id, id) == 0) && (strcmp(flights[i].date, date) == 0))
+        if ((strcmp(flights[i].id, id) == 0)
+                && (strcmp(flights[i].date, date) == 0))
             return 1;
     }
 
-    if ((airport_exists(airports, airport_count, departure) == 0) || (airport_exists(airports, airport_count, arrival) == 0))
+    if ((airport_exists(airports, airport_count, departure) == 0)
+            || (airport_exists(airports, airport_count, arrival) == 0))
         return 2;
 
     if (flight_count == FLIGHTSMAX)
         return 3;
 
     sscanf(date, "%d-%d-%d", &day, &month, &year);
-    if (check_date(currentdate, day, month, year)) /* check_date() returns 1 (considered true) if the date is invalid */
+    if (check_date(currentdate, day, month, year))
+        /* check_date() returns 1 (considered true) if the date is invalid */
         return 4;
 
     sscanf(duration, "%d:%d", &hrs, &mins);
@@ -388,7 +420,8 @@ int arrival_date_n_hour(struct flight flight, int pos){
     Day if pos is 0,
     Month if pos is 1,
     Year if pos is 2,
-    New hour (since when this function is called, for the time, while minutes are correct, hours can exceed possible values) if pos 3
+    New hour (since when this function is called, for the time, while minutes 
+    are correct, hours can exceed possible values) if pos 3
     */
 
     int day, mo, y, arr_hrs;
@@ -419,7 +452,8 @@ int arrival_date_n_hour(struct flight flight, int pos){
                 else
                     day++;
             
-            else if ((mo == 1) || (mo == 3) || (mo == 5) || (mo == 7) || (mo == 8) || (mo == 10) || (mo == 12))
+            else if ((mo == 1) || (mo == 3) || (mo == 5) || (mo == 7) 
+                        || (mo == 8) || (mo == 10) || (mo == 12))
                 if (day == 31){
                     day = 1;
                     mo++;
@@ -451,7 +485,8 @@ int arrival_date_n_hour(struct flight flight, int pos){
 
 int compare_flights(struct flight flight1, struct flight flight2, int mode){
     /*
-    Compares departure dates and times if mode is set to 0, arrival dates and times if mode is set to 1
+    Compares departure dates and times if mode is set to 0, arrival dates and 
+    times if mode is set to 1
     Returns 1 if flight1 arrives after flight2, 0 if not
     */
 
@@ -557,9 +592,11 @@ int compare_flights(struct flight flight1, struct flight flight2, int mode){
     return 0;
 }
 
-void sort_flights(struct flight sorted[], struct flight flights[], int flight_count, int mode){
+void sort_flights(struct flight sorted[], struct flight flights[], 
+                    int flight_count, int mode){
     /*
-    Using bubble sort, orders flights either from their departure date and time , if mode is 0.
+    Using bubble sort, orders flights either from their departure date and 
+    time, if mode is 0.
     If mode is 1, orders from arrival date and time.
     From oldest to most recent.
     */
@@ -568,7 +605,9 @@ void sort_flights(struct flight sorted[], struct flight flights[], int flight_co
     int i, j;
 
     for (i = 0; i < flight_count; i++){
-        create_flight(sorted, i, flights[i].id, flights[i].departure, flights[i].arrival, flights[i].date, flights[i].time, flights[i].duration, flights[i].passengers);
+        create_flight(sorted, i, flights[i].id, flights[i].departure, 
+                        flights[i].arrival, flights[i].date, flights[i].time, 
+                        flights[i].duration, flights[i].passengers);
     }
 
     for (i = 0; i < flight_count; i++){
@@ -662,7 +701,8 @@ int main(){
                         printf("%s\n", DUP_AP_ERR);
                         break;
                     case 3:
-                        create_airport(airports, airport_count, id, country, city);
+                        create_airport(airports, airport_count, id, country, 
+                                        city);
                         printf("airport %s\n", id);
                         airport_count++;
                         break;
@@ -673,18 +713,27 @@ int main(){
                 if (len == 2){
                     sort_airports(sorted_airports, airports, airport_count);
                     for (i = 0; i < airport_count; i++)
-                        printf("%s %s %s %d\n", sorted_airports[i].id, sorted_airports[i].city, sorted_airports[i].country, departure_count(flights, flight_count, sorted_airports[i].id));
+                        printf("%s %s %s %d\n", sorted_airports[i].id, 
+                                sorted_airports[i].city, 
+                                sorted_airports[i].country, 
+                                departure_count(flights, flight_count, 
+                                                    sorted_airports[i].id));
                 }
                 else{
                     element = strtok(input + 2, " \n");
 
                     while (element != NULL){
-                        if (airport_exists(airports, airport_count, element) == 0)
-                            printf("%s: %s\n", element, NOT_FOUND_AP_ID_ERR);
+                        if (airport_exists(airports, airport_count, element)==0)
+                            printf("%s: %s\n", element, NO_AP_ID_ERR);
 
                         else{
-                            index_id = get_index_by_id(airports, airport_count, element);
-                            printf("%s %s %s %d\n", element, airports[index_id].city, airports[index_id].country, departure_count(flights, flight_count, element));
+                            index_id = get_index_by_id(airports, airport_count, 
+                                                        element);
+                            printf("%s %s %s %d\n", element, 
+                                    airports[index_id].city, 
+                                    airports[index_id].country, 
+                                    departure_count(flights, flight_count, 
+                                                        element));
                         }
 
                         element = strtok(NULL, " \n");
@@ -694,8 +743,14 @@ int main(){
             case 'v':
                 for (len = 0; input[len] != '\0'; len++);
                 if (len > 2){
-                    sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, arrivalid, departuredate, departuretime, flightduration, &passengers);
-                    check = check_flight(currentdate, airports, airport_count, flights, flight_count, flightid, departureid, arrivalid, departuredate, flightduration, passengers);
+                    sscanf(input, "%*s%s%s%s%s%s%s%d", flightid, departureid, 
+                            arrivalid, departuredate, departuretime, 
+                            flightduration, &passengers);
+                    check = check_flight(currentdate, airports, airport_count, 
+                                            flights, flight_count, flightid, 
+                                            departureid, arrivalid, 
+                                            departuredate, flightduration, 
+                                            passengers);
                     switch(check){
                         case 0:
                             printf("%s\n", INV_FLIGHT_ID_ERR);
@@ -704,10 +759,11 @@ int main(){
                             printf("%s\n", DUP_FLIGHT_ERR);
                             break;
                         case 2:
-                            if (airport_exists(airports, airport_count, departureid))
-                                printf("%s: %s\n", arrivalid, NOT_FOUND_AP_ID_ERR);
+                            if (airport_exists(airports, airport_count, 
+                                                departureid))
+                                printf("%s: %s\n", arrivalid, NO_AP_ID_ERR);
                             else
-                                printf("%s: %s\n", departureid, NOT_FOUND_AP_ID_ERR);
+                                printf("%s: %s\n", departureid, NO_AP_ID_ERR);
                             break;
                         case 3:
                             printf("%s\n", CAP_FLIGHTS_ERR);
@@ -723,42 +779,56 @@ int main(){
                             break;
                         
                         case 7:
-                            create_flight(flights, flight_count, flightid, departureid, arrivalid, departuredate, departuretime, flightduration, passengers);
+                            create_flight(flights, flight_count, flightid, 
+                                            departureid, arrivalid, 
+                                            departuredate, departuretime, 
+                                            flightduration, passengers);
                             flight_count++;
                             break;
                     }
                 }
                 else
                     for (i = 0; i < flight_count; i++)
-                        printf("%s %s %s %02d-%02d-%d %s\n", flights[i].id, flights[i].departure, flights[i].arrival, parse_date(flights[i].date, 0), parse_date(flights[i].date, 1), parse_date(flights[i].date, 2), flights[i].time);
+                        printf("%s %s %s %02d-%02d-%d %s\n", flights[i].id, 
+                                flights[i].departure, flights[i].arrival, 
+                                parse_date(flights[i].date, 0), 
+                                parse_date(flights[i].date, 1), 
+                                parse_date(flights[i].date, 2), 
+                                flights[i].time);
                 break;
             case 'p':
                 sscanf(input, "%*s %s", id);
                 if (airport_exists(airports, airport_count, id) == 0)
-                    printf("%s: %s\n", id, NOT_FOUND_AP_ID_ERR);
+                    printf("%s: %s\n", id, NO_AP_ID_ERR);
                 else{
                     sort_flights(sorted_flights, flights, flight_count, 0);
                     for (i = 0; i < flight_count; i++){
                         if (strcmp(id, sorted_flights[i].departure) == 0)
-                            printf("%s %s %s %s\n", sorted_flights[i].id, sorted_flights[i].arrival, sorted_flights[i].date, sorted_flights[i].time);
+                            printf("%s %s %s %s\n", sorted_flights[i].id, 
+                                    sorted_flights[i].arrival, 
+                                    sorted_flights[i].date, 
+                                    sorted_flights[i].time);
                     }
                 }
                 break;
             case 'c':
                 sscanf(input, "%*s %s", id);
                 if (airport_exists(airports, airport_count, id) == 0)
-                    printf("%s: %s\n", id, NOT_FOUND_AP_ID_ERR);
+                    printf("%s: %s\n", id, NO_AP_ID_ERR);
                 else{
                     sort_flights(sorted_flights, flights, flight_count, 1);
                     for (i = 0; i < flight_count; i++){
                         if (strcmp(id, sorted_flights[i].arrival) == 0)
-                            printf("%s %s %02d-%02d-%d %02d:%02d\n", sorted_flights[i].id, sorted_flights[i].departure, arrival_date_n_hour(sorted_flights[i], 0), arrival_date_n_hour(sorted_flights[i], 1), arrival_date_n_hour(sorted_flights[i], 2), arrival_date_n_hour(sorted_flights[i], 3), arrival_time_aux(sorted_flights[i], 1));
+                            printf("%s %s %02d-%02d-%d %02d:%02d\n", 
+                                    sorted_flights[i].id, 
+                                    sorted_flights[i].departure, 
+                                    arrival_date_n_hour(sorted_flights[i], 0), 
+                                    arrival_date_n_hour(sorted_flights[i], 1), 
+                                    arrival_date_n_hour(sorted_flights[i], 2), 
+                                    arrival_date_n_hour(sorted_flights[i], 3), 
+                                    arrival_time_aux(sorted_flights[i], 1));
                     }
                 }
-
-                /*
-                printf("%02d-%02d-%d %02d:%02d\n", arrival_date_n_hour(flights[0], 0), arrival_date_n_hour(flights[0], 1), arrival_date_n_hour(flights[0], 2), arrival_date_n_hour(flights[0], 3), arrival_time_aux(flights[0], 1));
-                */
 
                 break;
             case 't':
