@@ -1,7 +1,8 @@
 
 # Airport-Manager
 
-Mid term project for Introduction to Algorithms and Data Structures
+Final and Mid term project for Introduction to Algorithms and Data Structures
+To see the history at the mid term, click [here](https://github.com/dvntx/Airport-Manager/blob/4e36c8b3024a9433dbd607936ad817f23c4f603e/airportmanager.c)
 
 ## Introduction
 
