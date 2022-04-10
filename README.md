@@ -127,6 +127,6 @@ The only libraries that can be included are:
 
 - stdio.h
 - stdlib.h
-- ctype.h
+- string.h
 
 The native function `qsort` is also fordibben from being used

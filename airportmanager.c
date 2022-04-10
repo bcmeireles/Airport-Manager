@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
 
 #define OFFSET 1
@@ -39,7 +38,7 @@
 #define STARTYEAR 2022
 
 /* Maximum amount of characters the user input can have */
-#define INPUTLEN 100
+#define INPUTLEN 65535
 
 /* Airport errors */
 #define INV_AP_ID_ERR "invalid airport ID"
@@ -304,6 +303,13 @@ void create_flight(Airport airports[], int airport_count, Flight flights[], int 
 
 }
 
+int check_upper(char letter){
+    if (letter >= 'A' && letter <= 'Z')
+        return 1;
+    else
+        return 0;
+}
+
 int check_flight(Airport airports[], 
                 int airport_count, Flight flights[], int flight_count, 
                 char id[], char departure[], char arrival[], Date departure_date, 
@@ -321,7 +327,7 @@ int check_flight(Airport airports[],
 
     int i = 2;
 
-    if (!(isupper(id[0]) && isupper(id[1]) && id[2] != '0'))
+    if (!(check_upper(id[0]) && check_upper(id[1]) && id[2] != '0'))
         return 0;
 
     for (i = 0; i < flight_count; i++){
@@ -451,17 +457,6 @@ int main(){
     while (1){
         fgets(input, INPUTLEN + OFFSET, stdin);
         command = input[0];
-
-        /*
-        q : kills the program
-        a : adds a new airport to the system
-        l : lists all airports
-        v : adds a new flight or shows all existing ones
-        p : lists all flights with departure from an airport
-        c : lists all flight with arrival at an airport
-        t : advances the date of the system
-        */ 
-
         switch(command){
             case 'q':
                 exit(0);
