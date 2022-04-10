@@ -16,9 +16,11 @@ The interaction with the program occurs through a set of lines composed by a let
 |a|Adds a new airport to the system|
 |l|Lists the airports|
 |v|Adds a flight or lists all flights
-|p|Lists all airports with departure from an airport|
-|c|Lists all airports with an arrival at an airport|
+|p|Lists flights with departure from an airport|
+|c|Lists flights with an arrival at an airport|
 |t|Advances system's date
+|r|Adds a new reservation or lists all reservations
+|e|Deletes a flight or reservation
 
 ## Problem Specification
 
@@ -43,9 +45,13 @@ The system allows a maximum of 40 airports.
 #### Flights
 Each flight is characterized by a flight code, a departure and an arrival airports, departure date and time, flight duration and maximum passenger count.
 
-Flight code is a string composed by 2 uppercase letters followed by a number between 1 and 9999 that never starts with 0. Multiple flights with the same code may exist, as long two flights with the same code don't have the same departure date. The maximum passenger count is a number between 10 and 100 and a flight duration can't exceed 12 hours.
+Flight code is a string composed by 2 uppercase letters followed by a number between 1 and 9999 that never starts with 0. Multiple flights with the same code may exist, as long two flights with the same code don't have the same departure date. The minimum passenger count (capacity) is 10, with no maximum and a flight duration can't exceed 12 hours.
 
 The system allows a maximum of 30000 airports.
+
+#### Reservations
+
+There is no reservation limit and the lenght of a reservation code is also limitless. The program should only use the strictly required memory. No instruction exceeds 65535 characters. If the memory runs out, the program should terminate, outputing the message `No memory`. Before terminating, the program should free all reserved memory.
 
 ### Entry Data
 The program reads input from the terminal.
@@ -73,4 +79,54 @@ If a command generates more than one error, only the first one is shown.
 		- If the command is executed with an ID list, airports are listed in order of their identifiers
 	- Errors
 		- `<airportID>: no such airport ID` if no airports exist with `<airportID>` as it's identifier
-	
+- **v** - adds a flight or lists all the flights
+	- Input: `v [ <flightCode> <departureID> <arrivalID> <departureDate> <departureTime> <duration> <capacity> ]`
+	- Output: `<flightCode> <departureID> <arrivalID> <departureDate> <departureTime>` for each added flight, by creation date, or nothing, if creating a new flight
+	- Errors
+		- `invalid flight code` if `flightCode` is not a string composed by two uppercase letters followed by 1 to 4 digits
+		- `flight already exists` in case a flight with the same `flightCode` already exists on the same day
+		- `<airportID>: no such airport ID` either the `departureID` or `arrivalID` airports do not exist
+		- `too many flights` if creating a flight exceeds the flight count limit
+		- `invalid date` if `departureDate` is a past date or more than a year in the future
+		- `invalid duration` if `duration` exceeds 12 hours
+		- `invalid capacity` if `capacity` is not an integrer between 10 and 100 (including those)
+- **p** - lists flights with departure from an airport
+	- Input: `p <airportID>`
+	- Output: `<flightCode> <arrivalID> <departureDate> <departureTime>` for each flight, sorted by date and time of departure. Flights are sorted from oldest to newest date and time. On the same airport, there won't be two flights with the same departure date and time
+	- Errors
+		- `<airportID>: no such airport ID` if `airportID` does not match an existing airport
+- **c** - lists flights with arrival at an airport
+	- Input: `c <airportID>`
+	- Output: `<flightCode> <departureID> <arrivalDate> <arrivalTime>` for each flight, sorted by date and time of arrival. Flights are sorted from oldest to newest date and time. On the same airport, there won't be two flights with the same arrival date and time
+	- Errors
+		- `<airportID>: no such airport ID` if `airportID` does not match an existing airport
+- **t** - advances system's date
+	- Input: `t <date>`
+	- Output: `<date>` where `date` is the new date value
+	- Errors
+		`invalid date` in case it's a past date or more than a year in the future
+- **r** - adds a new reservation or lists all reservations
+	- Input: `r <flightCode> <date> [ <reservationCode> <passengerCount> ]`
+	- Output: `<reservationCode> <passengerCount>` for each reservation on the flight with `flightCode` on `date`. One reservation per line in lexicographical order
+	- Errors
+		- `invalid reservation code` if `reservationCode` is not a string composed by only uppercase letters and digits, or if it has less than 10 characters
+		- `<flightCode>: flight does not exist` if there is no flight with the given code at the given date
+		- `<reservationCode>: flight reservation already used` if a reservation with the same code already exists
+		- `too many reservations` if, when creating the reservation, it exceeds a flight's passenger capacity
+		- `invalid date` if `date` is in the past or more than a year in the future
+		- `invalid passenger number` if `passengerCount` is not an integrer higher than 0
+- **e** - deletes a flight o reservation
+	- Input: `e <code>`
+	- Output: Deletes all flights or the serervation with `code`. If it's a flight, all reservations associated with it are also deleted
+	- Errors
+		- `not found` if no flights or reservation exists with `code`
+
+## Restricitons
+
+The only libraries that can be included are:
+
+- stdio.h
+- stdlib.h
+- ctype.h
+
+The native function `qsort` is also fordibben from being used
