@@ -54,6 +54,12 @@
 #define INV_DUR_ERR "invalid duration"
 #define INV_CAP_ERR "invalid capacity"
 
+/* Reservation Erors */
+#define INV_RES_CODE_ERR "invalid reservation code"
+#define DUP_RES_CODE_ERR "flight reservation already used"
+#define CAP_RES_ERR "too many reservations"
+#define INV_PAS_ERR "invalid passenger number"
+
 const int daysMonth[] =
 	{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
 
@@ -98,6 +104,13 @@ typedef struct Flight {
     int passengers;
 
 } Flight;
+
+
+typedef struct Reservation {
+    char *reservationCode;
+    int passengerCount;
+    struct Reservation *next;
+} Reservation;
 
 /* 
 Returns 1 if the given char is uppercase, 0 if not
@@ -420,6 +433,29 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
     }
 }
 
+/*
+Creates a new reservation, given a reservation code and a passenger count
+*/
+Reservation* createReservation(char *reservationCode, int passengerCount) {
+    Reservation *head;
+
+    head = (Reservation*)malloc(sizeof(Reservation));
+
+    if (head == NULL) {
+        printf("%s\n", CAP_RES_ERR);
+        exit(0);
+    }
+
+    else {    
+        head->reservationCode = (char*)malloc(sizeof(char) * (strlen(reservationCode) + 1));
+
+        strcpy(head->reservationCode, reservationCode);
+
+        head->passengerCount = passengerCount;
+
+        return head;
+    }
+}
 
 
 /*
