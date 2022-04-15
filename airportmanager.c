@@ -433,6 +433,60 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
     }
 }
 
+Reservation* createReservation(char flightid[], Date date, char* reservationCode, int passengerCount){
+    Reservation* reservation = malloc(sizeof(Reservation));
+    reservation->reservationCode = malloc(sizeof(char)*strlen(reservationCode) + 1);
+    strcpy(reservation->reservationCode, reservationCode);
+    reservation->passengerCount = passengerCount;
+    reservation->next = NULL;
+    return reservation;
+}
+
+/*
+Returns 0 if the reservation code is invalid
+Returns 1 if the given flight does not exists
+Returns 2 if the reservation is already being used
+Returns 3 if, when creating a reservation, it exceeds the flight capacity
+Returns 4 if the date is invalid
+Returns 5 passengerCount is not an integrer higher than 0
+Returns 6 if it is possible to create the given reservation
+*/
+int checkReservation(Reservation *reservation, Flight flights[], int flight_count, char flightid[], Date date, char* reservationCode, int passengerCount){
+    int i;
+    int index = -1;
+
+    for (i = 0; i < flight_count; i++) {
+        if (strcmp(flights[i].id, flightid) == 0
+                && getDateNum(flights[i].departure_date) == getDateNum(date))
+                    index = i;
+    }
+    
+    if (index == -1)
+        return 1;
+
+    while (reservation != NULL) {
+        if (strcmp(reservation->reservationCode, reservationCode) == 0)
+            return 2;
+        reservation = reservation->next;
+    }
+
+    printf("%d\n", index);
+    printf("%d\n", flights[index].passengers);
+    printf("%d\n", passengerCount);
+
+    if (flights[index].passengers < passengerCount)
+        return 3;
+
+    if (check_date(date))
+        return 4;
+
+    if (passengerCount < 1)
+        return 5;
+
+    return 6;
+
+}
+
 /*
 Main function, containing the loop for the continuous commands and
 where all error handling and function calling takes place
@@ -468,9 +522,9 @@ int main() {
     Hour flightduration;
     int passengers;
 
-    Reservation root;
+    Reservation* root = malloc(sizeof(Reservation));
 
-    char* reservationCode;
+    char* reservationCode = malloc(sizeof(char)*(INPUTLEN - OFFSET));
     int passengerCount;
     
 
@@ -643,10 +697,16 @@ int main() {
                 }
                 break;
             case 'r':
-                sscanf("%*s %s %02d-%02d-%04d %s %d", flightid, &newDate.day, &newDate.month, &newDate.year, 
-                        &reservationCode, passengerCount);
-                if (root.reservationCode == NULL)
-                    root.reservationCode = (char*)malloc(sizeof(char)*(strlen(reservationCode)+1));
+                sscanf(input, "%*s %s %02d-%02d-%04d %s %d", flightid, &newDate.day, &newDate.month, &newDate.year, 
+                        reservationCode, &passengerCount);
+                
+                reservationCode = realloc(reservationCode, sizeof(char)*strlen(reservationCode) + 1);
+                    
+                root = createReservation("TP2222", newDate, "CONA1234", passengerCount);
+
+                printf("Check: %d\n", checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount));
+
+
         }
     }
 
