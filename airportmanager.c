@@ -434,31 +434,6 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
 }
 
 /*
-Creates a new reservation, given a reservation code and a passenger count
-*/
-Reservation* createReservation(char *reservationCode, int passengerCount) {
-    Reservation *head;
-
-    head = (Reservation*)malloc(sizeof(Reservation));
-
-    if (head == NULL) {
-        printf("%s\n", CAP_RES_ERR);
-        exit(0);
-    }
-
-    else {    
-        head->reservationCode = (char*)malloc(sizeof(char) * (strlen(reservationCode) + 1));
-
-        strcpy(head->reservationCode, reservationCode);
-
-        head->passengerCount = passengerCount;
-
-        return head;
-    }
-}
-
-
-/*
 Main function, containing the loop for the continuous commands and
 where all error handling and function calling takes place
 */
@@ -493,7 +468,11 @@ int main() {
     Hour flightduration;
     int passengers;
 
+    Reservation root;
 
+    char* reservationCode;
+    int passengerCount;
+    
 
     Date newDate;
 
@@ -663,6 +642,11 @@ int main() {
                         break;
                 }
                 break;
+            case 'r':
+                sscanf("%*s %s %02d-%02d-%04d %s %d", flightid, &newDate.day, &newDate.month, &newDate.year, 
+                        &reservationCode, passengerCount);
+                if (root.reservationCode == NULL)
+                    root.reservationCode = (char*)malloc(sizeof(char)*(strlen(reservationCode)+1));
         }
     }
 
