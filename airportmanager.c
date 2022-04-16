@@ -53,6 +53,7 @@
 #define DUP_FLIGHT_ERR "flight already exists"
 #define INV_DUR_ERR "invalid duration"
 #define INV_CAP_ERR "invalid capacity"
+#define FLIGHT_NOT_FOUND_ERR "flight does not exist"
 
 /* Reservation Erors */
 #define INV_RES_CODE_ERR "invalid reservation code"
@@ -433,7 +434,8 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
     }
 }
 
-Reservation* createReservation(char flightid[], Date date, char* reservationCode, int passengerCount){
+// Alterar p adicionar a head em vez de susbstutuir
+Reservation* createReservation(Reservation* head, char flightid[], Date date, char* reservationCode, int passengerCount){
     Reservation* reservation = malloc(sizeof(Reservation));
     reservation->reservationCode = malloc(sizeof(char)*strlen(reservationCode) + 1);
     strcpy(reservation->reservationCode, reservationCode);
@@ -455,6 +457,15 @@ int checkReservation(Reservation *reservation, Flight flights[], int flight_coun
     int i;
     int index = -1;
 
+    if (strlen(reservationCode) < 10)
+        return 0;
+
+    for (i = 0; reservationCode[i] != '\0'; i++) {
+        if (!(check_upper(reservationCode[i])) && (0 < reservationCode[i] > 9))
+            return 0;
+    }
+
+
     for (i = 0; i < flight_count; i++) {
         if (strcmp(flights[i].id, flightid) == 0
                 && getDateNum(flights[i].departure_date) == getDateNum(date))
@@ -469,10 +480,6 @@ int checkReservation(Reservation *reservation, Flight flights[], int flight_coun
             return 2;
         reservation = reservation->next;
     }
-
-    printf("%d\n", index);
-    printf("%d\n", flights[index].passengers);
-    printf("%d\n", passengerCount);
 
     if (flights[index].passengers < passengerCount)
         return 3;
@@ -697,15 +704,48 @@ int main() {
                 }
                 break;
             case 'r':
+
+                
                 sscanf(input, "%*s %s %02d-%02d-%04d %s %d", flightid, &newDate.day, &newDate.month, &newDate.year, 
                         reservationCode, &passengerCount);
-                
+               
                 reservationCode = realloc(reservationCode, sizeof(char)*strlen(reservationCode) + 1);
-                    
-                root = createReservation("TP2222", newDate, "CONA1234", passengerCount);
 
-                printf("Check: %d\n", checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount));
-
+                if (root->reservationCode == NULL)
+                    check = checkReservation(NULL, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
+                else
+                    check = checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
+                printf("Check: %d\n", check);
+                switch(check) {
+                    case 0:
+                        printf("%s\n", INV_RES_CODE_ERR);
+                        break;
+                    case 1:
+                        printf("<%s>: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);
+                        break;
+                    case 2:
+                        printf("<%s>: %s\n", reservationCode, DUP_RES_CODE_ERR);
+                        break;
+                    case 3:
+                        printf("%s\n", CAP_RES_ERR);
+                        break;
+                    case 4:
+                        printf("%s\n", INV_DATE_ERR);
+                        break;
+                    case 5:
+                        printf("%s\n", INV_PAS_ERR);
+                        break;
+                    case 6:
+                        if (root->reservationCode == NULL){
+                            root->reservationCode = malloc(sizeof(char)*strlen(reservationCode) + 1);
+                            strcpy(root->reservationCode, reservationCode);
+                            root->reservationCode = passengerCount;
+                            root->next = NULL;
+                        }
+                        else
+                            root = createReservation(root, flightid, newDate, reservationCode, passengerCount);
+                        break;
+                }    
 
         }
     }
