@@ -17,9 +17,9 @@
 /* Maximum amount of characters a flight ID can have */
 #define FLIGHTIDMAX 6
 /* Minimum passenger count a flight must have */
-#define MINPASSENGERS 10
+#define MINpassengerS 10
 /* Maximum passenger count a flight can have */
-#define MAXPASSENGERS 100
+#define MAXpassengerS 100
 /* Maximum duration, in hours, a flight can have */
 #define MAXFLIGHTDURATION 12
 /* Maximum amount of flights that can be created */
@@ -59,7 +59,7 @@
 #define INV_RES_CODE_ERR "invalid reservation code"
 #define DUP_RES_CODE_ERR "flight reservation already used"
 #define CAP_RES_ERR "too many reservations"
-#define INV_PAS_ERR "invalid passenger number"
+#define INV_PAS_ERR "invalid passager number"
 
 const int daysMonth[] =
 	{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
@@ -378,7 +378,7 @@ int check_flight(Airport airports[],
         if (duration.minute > 0)
             return 5;
 
-    if (passengers < MINPASSENGERS || passengers > MAXPASSENGERS)
+    if (passengers < MINpassengerS || passengers > MAXpassengerS)
         return 6;
 
     return 7;
@@ -447,8 +447,9 @@ int getFlightIndex(Flight flights[], int flight_count, char id[]) {
     return -1;
 }
 
-// Alterar p adicionar a head em vez de susbstutuir
-Reservation* createReservation(Reservation* head, char flightid[], Date date, char* reservationCode, int passengerCount){
+Reservation* createReservation(Reservation* head, Flight flights[], int flight_count, char flightid[], Date date, char* reservationCode, int passengerCount){
+    Reservation* aux;
+    
     Reservation* reservation = malloc(sizeof(Reservation));
     reservation->reservationCode = malloc(sizeof(char)*strlen(reservationCode) + 1);
     strcpy(reservation->reservationCode, reservationCode);
@@ -456,9 +457,28 @@ Reservation* createReservation(Reservation* head, char flightid[], Date date, ch
     strcpy(reservation->flightid, flightid);
     reservation->passengerCount = passengerCount;
     reservation->dateNum = getDateNum(date);
-    reservation->next = head;
+    reservation->next = NULL;
+
+    if (strcmp(reservationCode, head->reservationCode) < 0){
+        reservation->next = head;
+        return reservation;
+    }
+
+    for (aux = head; aux->next != NULL; aux = aux->next){
+        if (strcmp(reservation->reservationCode, aux->next->reservationCode) < 0){
+            reservation->next = aux->next;
+            aux->next = reservation;
+            break;
+        }
+    }
+
+
+    flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+
     return reservation;
 }
+
+
 
 /*
 Returns 0 if the reservation code is invalid
@@ -477,7 +497,8 @@ int checkReservation(Reservation *reservation, Flight flights[], int flight_coun
         return 0;
 
     for (i = 0; reservationCode[i] != '\0'; i++) {
-        if (!(check_upper(reservationCode[i])) && (0 < reservationCode[i] > 9))
+        if (!(check_upper(reservationCode[i]))
+        && !(reservationCode[i] >= '0' && reservationCode[i] <= '9'))
             return 0;
     }
 
@@ -505,6 +526,9 @@ int checkReservation(Reservation *reservation, Flight flights[], int flight_coun
 
 }
 
+/*
+Prints all reservations associated with the given flight on the given date
+*/
 void printReservations(Reservation *reservation, char flightid[], Date date){
     while (reservation != NULL) {
         if (strcmp(reservation->flightid, flightid) == 0 && reservation->dateNum == getDateNum(date))
@@ -513,6 +537,21 @@ void printReservations(Reservation *reservation, char flightid[], Date date){
         reservation = reservation->next;
     }
 }
+
+/*
+Frees all the memory allocated for the reservation list
+*/
+void freeReservations(Reservation *reservation){
+    Reservation *aux;
+    while (reservation != NULL){
+        aux = reservation->next;
+        free(reservation->reservationCode);
+        free(reservation->flightid);
+        free(reservation);
+        reservation = aux;
+    }
+}
+
 
 /*
 Main function, containing the loop for the continuous commands and
@@ -550,8 +589,8 @@ int main() {
     int passengers;
 
     Reservation* root = malloc(sizeof(Reservation));
-
     char* reservationCode = malloc(sizeof(char)*(INPUTLEN - OFFSET));
+
     int passengerCount;
     
 
@@ -734,6 +773,7 @@ int main() {
                         check = checkReservation(NULL, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
                     else
                         check = checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
+
                     switch(check) {
                         case 0:
                             printf("%s\n", INV_RES_CODE_ERR);
@@ -762,23 +802,26 @@ int main() {
                                 root->passengerCount = passengerCount;
                                 root->dateNum = getDateNum(newDate);
                                 root->next = NULL;
+                                flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
                             }
                             else
-                                root = createReservation(root, flightid, newDate, reservationCode, passengerCount);
-                            break;   
+                                root = createReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
+                            break;
                     }
                 }
                 else {
                     sscanf(input, "%*s %s %02d-%02d-%04d", flightid, &newDate.day, &newDate.month, &newDate.year);
 
-                    if (getFlightIndex(flights, flight_count, flightid) == -1)
+                    if (getFlightIndex(flights, flight_count, flightid) == -1){
+                        printf("%s: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);}
+                    else if (getDateNum(flights[getFlightIndex(flights, flight_count, flightid)].departure_date) != getDateNum(newDate))
                         printf("%s: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);
                     else if (checkDate(newDate))
                         printf("%s\n", INV_DATE_ERR);
                     else
                         printReservations(root, flightid, newDate);
                 }
-            break;
+                break;
         }
     }
 
