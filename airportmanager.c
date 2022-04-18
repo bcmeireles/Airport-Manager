@@ -436,6 +436,9 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
     }
 }
 
+/*
+Returns a flight index if it exists. If it does not, returns -1
+*/
 int getFlightIndex(Flight flights[], int flight_count, char id[]) {
     int i;
 
@@ -446,6 +449,10 @@ int getFlightIndex(Flight flights[], int flight_count, char id[]) {
 
     return -1;
 }
+
+/*
+Creates a new reservation, adding it to the linked list by alphabetical order
+*/
 
 Reservation* createReservation(Reservation* head, Flight flights[], int flight_count, char flightid[], Date date, char* reservationCode, int passengerCount){
     Reservation* aux;
@@ -461,6 +468,7 @@ Reservation* createReservation(Reservation* head, Flight flights[], int flight_c
 
     if (strcmp(reservationCode, head->reservationCode) < 0){
         reservation->next = head;
+        flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
         return reservation;
     }
 
@@ -468,14 +476,16 @@ Reservation* createReservation(Reservation* head, Flight flights[], int flight_c
         if (strcmp(reservation->reservationCode, aux->next->reservationCode) < 0){
             reservation->next = aux->next;
             aux->next = reservation;
-            break;
+            flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+            return head;
         }
     }
 
+    aux->next = reservation;
 
     flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
 
-    return reservation;
+    return head;
 }
 
 
@@ -539,6 +549,41 @@ void printReservations(Reservation *reservation, char flightid[], Date date){
 }
 
 /*
+Receives the head of the reservations linked list and, if the given reservationCode corresponds to a reservation, removes it from the linked list
+*/
+Reservation* deleteReservation(Reservation* head, char reservationCode[], Flight flights[], int flight_count){
+    Reservation* aux;
+    Reservation* prev;
+    int index = -1;
+
+    if (strcmp(head->reservationCode, reservationCode) == 0){
+        aux = head;
+        head = head->next;
+        flights[getFlightIndex(flights, flight_count, aux->flightid)].passengers += aux->passengerCount;
+        free(aux->reservationCode);
+        free(aux->flightid);
+        free(aux);
+        return head;
+    }
+
+    for (aux = head; aux->next != NULL; aux = aux->next){
+        if (strcmp(aux->next->reservationCode, reservationCode) == 0){
+            prev = aux->next;
+            aux->next = aux->next->next;
+            if (index == -1)
+                index = getFlightIndex(flights, flight_count, aux->flightid);
+            flights[index].passengers += aux->passengerCount;
+            free(prev->reservationCode);
+            free(prev->flightid);
+            free(prev);
+            return head;
+        }
+    }
+
+    return head;
+}
+
+/*
 Frees all the memory allocated for the reservation list
 */
 void freeReservations(Reservation *reservation){
@@ -589,7 +634,8 @@ int main() {
     int passengers;
 
     Reservation* root = malloc(sizeof(Reservation));
-    char* reservationCode = malloc(sizeof(char)*(INPUTLEN - OFFSET));
+    char* reservationCode;
+    char* deleteCode;
 
     int passengerCount;
     
@@ -764,6 +810,7 @@ int main() {
                 break;
             case 'r':
                 if (strlen(input) > 20) {
+                    reservationCode = malloc(sizeof(char)*(INPUTLEN - OFFSET));
                     sscanf(input, "%*s %s %02d-%02d-%04d %s %d", flightid, &newDate.day, &newDate.month, &newDate.year, 
                             reservationCode, &passengerCount);
                 
@@ -821,6 +868,22 @@ int main() {
                     else
                         printReservations(root, flightid, newDate);
                 }
+                break;
+            case 'e':
+                if (strlen(input) > 10){
+                    deleteCode = malloc(sizeof(char)*(INPUTLEN - OFFSET));
+                    sscanf(input, "%*s %s", deleteCode);
+                    deleteCode = realloc(deleteCode, sizeof(char)*strlen(deleteCode) + 1);
+                    deleteReservation(root, deleteCode, flights, flight_count);
+                }
+                else {
+                    deleteCode = malloc(sizeof(char)*(FLIGHTIDMAX + OFFSET));
+                    sscanf(input, "%*s %s", deleteCode);
+                    deleteCode = realloc(deleteCode, sizeof(char)*strlen(deleteCode) + 1);
+                }
+
+                printf("code: %s", deleteCode);
+
                 break;
         }
     }
