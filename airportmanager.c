@@ -583,6 +583,24 @@ Reservation* deleteReservation(Reservation* head, char reservationCode[], Flight
     return head;
 }
 
+
+void deleteFlight(Flight flights[], int flight_count, char* flightid){
+    int i;
+    int j;
+    
+    for (i = 0; i < flight_count; i++) {
+        if (strcmp(flights[i].id, flightid) == 0)
+            break;
+    }
+
+    for (j = i - 1; j < flight_count - 1; j++)
+        flights[j] = flights[j + 1];
+
+    flight_count--;
+
+}
+
+
 /*
 Frees all the memory allocated for the reservation list
 */
@@ -881,8 +899,6 @@ int main() {
                     sscanf(input, "%*s %s", deleteCode);
                     deleteCode = realloc(deleteCode, sizeof(char)*strlen(deleteCode) + 1);
                 }
-
-                printf("code: %s", deleteCode);
 
                 break;
         }
