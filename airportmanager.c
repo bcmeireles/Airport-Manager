@@ -17,9 +17,7 @@
 /* Maximum amount of characters a flight ID can have */
 #define FLIGHTIDMAX 6
 /* Minimum passenger count a flight must have */
-#define MINpassengerS 10
-/* Maximum passenger count a flight can have */
-#define MAXpassengerS 100
+#define MINPASSENGERS 10
 /* Maximum duration, in hours, a flight can have */
 #define MAXFLIGHTDURATION 12
 /* Maximum amount of flights that can be created */
@@ -404,7 +402,7 @@ int check_flight(Airport airports[],
         if (duration.minute > 0)
             return 5;
 
-    if (passengers < MINpassengerS || passengers > MAXpassengerS)
+    if (passengers < MINPASSENGERS)
         return 6;
 
     return 7;
@@ -465,16 +463,32 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
 /*
 Returns a flight index if it exists. If it does not, returns -1
 */
-int getFlightIndex(Flight flights[], int flight_count, char id[]) {
+int getFlightIndex(Flight flights[], int flight_count, char id[], int date) {
     int i;
 
     for (i = 0; i < flight_count; i++) {
-        if (strcmp(flights[i].id, id) == 0)
+        if (strcmp(flights[i].id, id) == 0 && getDateNum(flights[i].departure_date) == date) {
             return i;
+            break;
+        }
     }
 
     return -1;
 }
+
+int getFlightIndexNoDate(Flight flights[], int flight_count, char id[]) {
+    int i;
+
+    for (i = 0; i < flight_count; i++) {
+        if (strcmp(flights[i].id, id) == 0) {
+            return i;
+            break;
+        }
+    }
+
+    return -1;
+}
+
 
 /*
 Creates a new reservation, adding it to the linked list by alphabetical order
@@ -500,7 +514,7 @@ Reservation* createReservation(Reservation* head, Flight flights[], int flight_c
 
     if (strcmp(reservationCode, head->reservationCode) < 0){
         reservation->next = head;
-        flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+        flights[getFlightIndex(flights, flight_count, flightid, getDateNum(date))].passengers -= passengerCount;
         return reservation;
     }
 
@@ -508,14 +522,14 @@ Reservation* createReservation(Reservation* head, Flight flights[], int flight_c
         if (strcmp(reservation->reservationCode, aux->next->reservationCode) < 0){
             reservation->next = aux->next;
             aux->next = reservation;
-            flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+            flights[getFlightIndex(flights, flight_count, flightid, getDateNum(date))].passengers -= passengerCount;
             return head;
         }
     }
 
     aux->next = reservation;
 
-    flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+    flights[getFlightIndex(flights, flight_count, flightid, getDateNum(date))].passengers -= passengerCount;
 
     return head;
 }
@@ -544,7 +558,7 @@ int checkReservation(Reservation *reservation, Flight flights[], int flight_coun
             return 0;
     }
 
-    index = getFlightIndex(flights, flight_count, flightid);
+    index = getFlightIndex(flights, flight_count, flightid, getDateNum(date));
   
     if (index == -1)
         return 1;
@@ -603,18 +617,20 @@ Reservation* deleteReservation(Reservation *reservation, char *reservationCode, 
     Reservation *aux;
     Reservation *prev;
 
+
     if (reservation == NULL)
         return reservation;
 
     if (strcmp(reservation->reservationCode, reservationCode) == 0){
+
         aux = reservation->next;
 
-        flights[getFlightIndex(flights, flight_count, reservation->flightid)].passengers += reservation->passengerCount;
+        flights[getFlightIndexNoDate(flights, flight_count, reservation->flightid)].passengers += reservation->passengerCount;
 
         free(reservation->reservationCode);
         free(reservation->flightid);
         free(reservation);
-        aux = NULL;
+        reservation = NULL;
         return aux;
     }
 
@@ -622,7 +638,7 @@ Reservation* deleteReservation(Reservation *reservation, char *reservationCode, 
         if (strcmp(prev->next->reservationCode, reservationCode) == 0){
             if (prev->next->next != NULL){
                 aux = prev->next->next;
-                flights[getFlightIndex(flights, flight_count, prev->next->flightid)].passengers += prev->next->passengerCount;
+                flights[getFlightIndexNoDate(flights, flight_count, prev->next->flightid)].passengers += prev->next->passengerCount;
                 free(prev->next->reservationCode);
                 free(prev->next->flightid);
                 free(prev->next);
@@ -631,7 +647,7 @@ Reservation* deleteReservation(Reservation *reservation, char *reservationCode, 
             }
             else{
                 aux = prev->next;
-                flights[getFlightIndex(flights, flight_count, prev->next->flightid)].passengers += prev->next->passengerCount;
+                flights[getFlightIndex(flights, flight_count, prev->next->flightid, prev->next->dateNum)].passengers += prev->next->passengerCount;
                 free(prev->next->reservationCode);
                 free(prev->next->flightid);
                 free(prev->next);
@@ -734,7 +750,7 @@ int main() {
     Hour flightduration;
     int passengers;
 
-    int index;
+    int index = -1;
 
     char* reservationCode;
     char* deleteCode;
@@ -925,10 +941,7 @@ int main() {
                     reservationCode = realloc(reservationCode, sizeof(char)*strlen(reservationCode) + 1);
 
 
-                    if (root == NULL)
-                        check = checkReservation(NULL, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
-                    else
-                        check = checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
+                    check = checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
 
                     switch(check) {
                         case 0:
@@ -965,7 +978,7 @@ int main() {
                                 root->passengerCount = passengerCount;
                                 root->dateNum = getDateNum(newDate);
                                 root->next = NULL;
-                                flights[getFlightIndex(flights, flight_count, flightid)].passengers -= passengerCount;
+                                flights[getFlightIndex(flights, flight_count, flightid, getDateNum(newDate))].passengers -= passengerCount;
                             }
                             else
                                 root = createReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
@@ -975,14 +988,22 @@ int main() {
                 else {
                     sscanf(input, "%*s %s %02d-%02d-%04d", flightid, &newDate.day, &newDate.month, &newDate.year);
 
-                    if (getFlightIndex(flights, flight_count, flightid) == -1){
-                        printf("%s: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);}
-                    else if (getDateNum(flights[getFlightIndex(flights, flight_count, flightid)].departure_date) != getDateNum(newDate))
+                    if (getFlightIndex(flights, flight_count, flightid, getDateNum(newDate)) == -1)
                         printf("%s: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);
-                    else if (checkDate(newDate))
-                        printf("%s\n", INV_DATE_ERR);
-                    else
-                        printReservations(root, flightid, newDate);
+
+                    else {
+                        index = getFlightIndex(flights, flight_count, flightid, getDateNum(newDate));
+
+                        if (index == -1)
+                            printf("%s: %s\n", flightid, FLIGHT_NOT_FOUND_ERR);
+                    
+
+
+                        else if (checkDate(newDate))
+                            printf("%s\n", INV_DATE_ERR);
+                        else
+                            printReservations(root, flightid, newDate);
+                    }
                 }
                 break;
             case 'e':
@@ -1004,14 +1025,14 @@ int main() {
                         noMemory(root);
                     sscanf(input, "%*s %s", deleteCode);
                     deleteCode = realloc(deleteCode, sizeof(char)*strlen(deleteCode) + 1);
-                    index = getFlightIndex(flights, flight_count, deleteCode);
+                    index = getFlightIndexNoDate(flights, flight_count, deleteCode);
                     if (index == -1)
                         printf("%s\n", DEL_NOT_FOUND_ERR);
                     else {
                         while (index != -1) { 
                             deleteFlight(flights, flight_count, index);
                             flight_count--;
-                            index = getFlightIndex(flights, flight_count, deleteCode);
+                            index = getFlightIndexNoDate(flights, flight_count, deleteCode);
                         }
                         root = deleteReservationsAfterFlight(root, deleteCode);
                     }
