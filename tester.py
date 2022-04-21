@@ -1,6 +1,7 @@
 import subprocess
 import os
 from pathlib import Path
+import time
 
 project_path = Path(__file__).absolute().parent
 tests_path = str(project_path) + f'/tests/'
@@ -22,6 +23,8 @@ files_in = sorted(files_in)
 files_out = sorted(files_out)
 
 for i in range(len(files_in)):
+    start = time.perf_counter()
+    
     test_path = tests_path + files_in[i]
     check_path = tests_path + files_out[i]
 
@@ -35,12 +38,14 @@ for i in range(len(files_in)):
     diff = subprocess.run(
         ["diff", check_path, output_path], stdout=subprocess.PIPE)
 
+    end = time.perf_counter()
+
     if diff.returncode != 0:
-        print(f"\nFAILED - Test {files_in[i]}\n")
+        print(f"\nFAILED - Test {files_in[i]} - Time: {round(end - start), 3}s\n")
         print(diff.stdout.decode("utf-8"))
         fails += 1
     else:
-        print(f"PASSED - Test {files_in[i]}")
+        print(f"PASSED - Test {files_in[i]} - Time: {round(end - start, 3)}s")
         passes += 1
 
     os.remove(output_path)
