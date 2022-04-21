@@ -115,7 +115,7 @@ If a command generates more than one error, only the first one is shown.
 		- `too many reservations` if, when creating the reservation, it exceeds a flight's passenger capacity
 		- `invalid date` if `date` is in the past or more than a year in the future
 		- `invalid passenger number` if `passengerCount` is not an integrer higher than 0
-- **e** - deletes a flight o reservation
+- **e** - deletes a flight or reservation
 	- Input: `e <code>`
 	- Output: Deletes all flights or the serervation with `code`. If it's a flight, all reservations associated with it are also deleted
 	- Errors
@@ -130,3 +130,7 @@ The only libraries that can be included are:
 - string.h
 
 The native function `qsort` is also fordibben from being used
+
+## Testing
+
+The file `tester.py` has been created in order to facilitate Airport Manager's testing, making it automated with files for input and the expected output
