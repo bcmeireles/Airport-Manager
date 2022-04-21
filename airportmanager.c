@@ -149,7 +149,6 @@ int check_upper(char letter) {
         return 0;
 }
 
-
 Date currentdate = {STARTDAY, STARTMONTH, STARTYEAR};
 
 /* 
@@ -461,7 +460,7 @@ void sort_flights(Airport airports[], int airport_count, Flight sorted[], Flight
 }
 
 /*
-Returns a flight index if it exists. If it does not, returns -1
+Returns a flight index if it exists, given the date. If it does not, returns -1
 */
 int getFlightIndex(Flight flights[], int flight_count, char id[], int date) {
     int i;
@@ -469,23 +468,23 @@ int getFlightIndex(Flight flights[], int flight_count, char id[], int date) {
     for (i = 0; i < flight_count; i++) {
         if (strcmp(flights[i].id, id) == 0 && getDateNum(flights[i].departure_date) == date) {
             return i;
-            break;
         }
     }
 
     return -1;
 }
 
+/*
+Returns the index of the first flight that exists, no matter the date. Returns -1 if no flight exists with the given ID
+*/
 int getFlightIndexNoDate(Flight flights[], int flight_count, char id[]) {
     int i;
 
     for (i = 0; i < flight_count; i++) {
         if (strcmp(flights[i].id, id) == 0) {
             return i;
-            break;
         }
     }
-
     return -1;
 }
 
@@ -493,7 +492,6 @@ int getFlightIndexNoDate(Flight flights[], int flight_count, char id[]) {
 /*
 Creates a new reservation, adding it to the linked list by alphabetical order
 */
-
 Reservation* createReservation(Reservation* head, Flight flights[], int flight_count, char flightid[], Date date, char* reservationCode, int passengerCount){
     Reservation* aux;
     
@@ -610,13 +608,9 @@ int reservationExists(Reservation *reservation, char *reservationCode){
 /*
 Receives the head of the reservations linked list and, if the given reservationCode corresponds to a reservation, removes it from the linked list
 */
-
-
-
 Reservation* deleteReservation(Reservation *reservation, char *reservationCode, Flight flights[], int flight_count){
     Reservation *aux;
     Reservation *prev;
-
 
     if (reservation == NULL)
         return reservation;
@@ -658,12 +652,11 @@ Reservation* deleteReservation(Reservation *reservation, char *reservationCode, 
 
         }
     }
-
     return reservation;
 }
 
 
-
+/* Given an index, deletes a flight */
 void deleteFlight(Flight flights[], int flight_count, int index){
     int i;
 
@@ -672,12 +665,15 @@ void deleteFlight(Flight flights[], int flight_count, int index){
     }
 }
 
+/*
+This function is called at the end of the funciton that deletes a flight and is used to delete all reservations associated with that flight
+*/
 Reservation* deleteReservationsAfterFlight(Reservation *reservation, char *flightid) {
     Reservation *aux;
     Reservation *prev;
 
-    if (reservation == NULL)
-        return reservation;
+    if (reservation == NULL) /* If there are no reservations */
+        return reservation; 
 
     if (strcmp(reservation->flightid, flightid) == 0) {
         aux = reservation->next;
@@ -689,7 +685,7 @@ Reservation* deleteReservationsAfterFlight(Reservation *reservation, char *fligh
     }
 
     for (prev = reservation; prev->next != NULL; prev = prev->next){
-        if (strcmp(prev->next->flightid, flightid) == 0){
+        if (strcmp(prev->next->flightid, flightid) == 0){ /* If the next reservation is the one to delete */
             if (prev->next->next != NULL){
                 aux = prev->next->next;
                 free(prev->next->reservationCode);
@@ -698,7 +694,7 @@ Reservation* deleteReservationsAfterFlight(Reservation *reservation, char *fligh
                 prev->next = aux;
                 return reservation;
             }
-            else{
+            else { /* If the last reservation is being deleted */
                 aux = prev->next;
                 free(prev->next->reservationCode);
                 free(prev->next->flightid);
@@ -710,7 +706,6 @@ Reservation* deleteReservationsAfterFlight(Reservation *reservation, char *fligh
     }
 
     return reservation;
-
 
 }
 
@@ -768,6 +763,7 @@ int main() {
         fgets(input, INPUTLEN + OFFSET, stdin);
         command = input[0];
         switch(command) {
+            case EOF:
             case 'q':
                 exit(0);
                 break;
@@ -940,7 +936,6 @@ int main() {
                 
                     reservationCode = realloc(reservationCode, sizeof(char)*strlen(reservationCode) + 1);
 
-
                     check = checkReservation(root, flights, flight_count, flightid, newDate, reservationCode, passengerCount);
 
                     switch(check) {
@@ -963,7 +958,7 @@ int main() {
                             printf("%s\n", INV_PAS_ERR);
                             break;
                         case 6:
-                            if (root == NULL){
+                            if (root == NULL) { /* If there are no reservations */
                                 root = malloc(sizeof(Reservation));
                                 if (root == NULL)
                                     noMemory(root);
@@ -1044,6 +1039,5 @@ int main() {
             break;
         }
     }
-
     return(0);
 }
